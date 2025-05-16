@@ -11,6 +11,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>; // <-- agregado
   loading: boolean;
 }
 
@@ -21,13 +22,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Listen for changes on auth state (signed in, signed out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
@@ -38,11 +37,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast.success('Successfully logged in!');
     } catch (error: any) {
@@ -56,11 +51,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: metadata,
-        },
+        options: { data: metadata },
       });
-
       if (error) throw error;
       toast.success('Registration successful! Please check your email to verify your account.');
     } catch (error: any) {
@@ -85,7 +77,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/update-password`,
       });
-      
       if (error) throw error;
       toast.success('Password reset instructions have been sent to your email!');
     } catch (error: any) {
@@ -99,9 +90,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
-
       if (error) throw error;
       toast.success('Password successfully updated!');
+    } catch (error: any) {
+      toast.error(error.message);
+      throw error;
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+      // No toast aquí porque redirige.
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -118,6 +124,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         logout,
         resetPassword,
         updatePassword,
+        signInWithGoogle, // <-- incluido en el contexto
         loading,
       }}
     >
