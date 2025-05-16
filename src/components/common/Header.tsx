@@ -86,7 +86,9 @@ const Header: React.FC = () => {
                       <User size={20} className="bg-gray-200 p-1 rounded-full" />
                     )}
                   </div>
-                  <span className="text-xs mt-1">{user?.name.split(' ')[0]}</span>
+                  <span className="text-xs mt-1">
+  {user?.user_metadata?.full_name?.split(' ')[0] ?? ''}
+</span>
                 </div>
                 <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
                   <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</Link>
