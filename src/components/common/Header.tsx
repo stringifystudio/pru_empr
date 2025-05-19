@@ -28,7 +28,7 @@ const Header: React.FC = () => {
   const role = user?.user_metadata?.role; // Suponiendo que el rol viene desde user_metadata
 
   const isAdmin = role === 'admin';
-  const isSeller = role === 'seller';
+  const isSeller = role === 'user';
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
