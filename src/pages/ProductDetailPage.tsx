@@ -1,47 +1,103 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, ShoppingCart, Heart, Share2, ChevronRight, Truck, ArrowLeft } from 'lucide-react';
-import { Product, Review } from '../types';
-import { products, reviews } from '../data/mockData';
+import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import ProductCard from '../components/products/ProductCard';
+import { supabase } from '../lib/supabase';
 
 const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
-  const [productReviews, setProductReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState('');
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  const [activeTab, setActiveTab] = useState('description');
 
   useEffect(() => {
-    // In a real app, you would fetch the product from an API
-    // For now, use our mock data
-    if (id) {
-      const foundProduct = products.find((p) => p.id === id);
-      if (foundProduct) {
-        setProduct(foundProduct);
-        setSelectedImage(foundProduct.thumbnail);
-        
-        // Get related products based on category
-        const related = products
-          .filter((p) => p.category === foundProduct.category && p.id !== id)
-          .slice(0, 4);
-        setRelatedProducts(related);
-        
-        // Get reviews for this product
-        const productReviews = reviews[id] || [];
-        setProductReviews(productReviews);
+    const fetchProduct = async () => {
+      try {
+        if (!id) return;
+
+        const { data: productData, error: productError } = await supabase
+          .from('products')
+          .select(`
+            *,
+            seller:seller_id (
+              id,
+              full_name,
+              rating
+            )
+          `)
+          .eq('id', id)
+          .single();
+
+        if (productError) throw productError;
+
+        if (!productData) {
+          setError('Product not found');
+          setLoading(false);
+          return;
+        }
+
+        const formattedProduct: Product = {
+          ...productData,
+          seller: {
+            id: productData.seller?.id || '',
+            name: productData.seller?.full_name || 'Anonymous',
+            rating: productData.seller?.rating || 4.5
+          },
+          images: productData.images ? 
+            (Array.isArray(productData.images) ? productData.images : [productData.images]) 
+            : [productData.thumbnail]
+        };
+
+        setProduct(formattedProduct);
+        setSelectedImage(formattedProduct.thumbnail);
+
+        // Fetch related products
+        const { data: relatedData } = await supabase
+          .from('products')
+          .select(`
+            *,
+            seller:seller_id (
+              id,
+              full_name,
+              rating
+            )
+          `)
+          .eq('category', formattedProduct.category)
+          .neq('id', id)
+          .limit(4);
+
+        if (relatedData) {
+          const formattedRelated = relatedData.map(item => ({
+            ...item,
+            seller: {
+              id: item.seller?.id || '',
+              name: item.seller?.full_name || 'Anonymous',
+              rating: item.seller?.rating || 4.5
+            }
+          }));
+          setRelatedProducts(formattedRelated);
+        }
+
+      } catch (err) {
+        console.error('Error fetching product:', err);
+        setError('Failed to load product');
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
+    fetchProduct();
   }, [id]);
 
   const handleAddToCart = () => {
     if (product) {
-      // Add the product to cart multiple times based on quantity
       for (let i = 0; i < quantity; i++) {
         addToCart(product);
       }
@@ -56,11 +112,29 @@ const ProductDetailPage: React.FC = () => {
     navigate(-1);
   };
 
-  if (!product) {
+  if (loading) {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            {error || 'Product not found'}
+          </h2>
+          <button
+            onClick={handleGoBack}
+            className="text-blue-600 hover:text-blue-800 font-medium"
+          >
+            Go Back
+          </button>
         </div>
       </div>
     );
@@ -100,7 +174,7 @@ const ProductDetailPage: React.FC = () => {
                 />
               </div>
               <div className="grid grid-cols-5 gap-2">
-                {product.images.map((image, index) => (
+                {(product.images || []).map((image, index) => (
                   <div 
                     key={index}
                     className={`aspect-square rounded border-2 cursor-pointer ${
@@ -133,7 +207,7 @@ const ProductDetailPage: React.FC = () => {
                       className={i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'} 
                     />
                   ))}
-                  <span className="ml-2 text-gray-600 text-sm">{product.rating} ({productReviews.length} reviews)</span>
+                  <span className="ml-2 text-gray-600 text-sm">{product.rating}</span>
                 </div>
                 <span className="mx-2 text-gray-300">|</span>
                 <span className="text-green-600 text-sm font-medium">
@@ -224,132 +298,10 @@ const ProductDetailPage: React.FC = () => {
             </div>
           </div>
           
-          {/* Product Tabs */}
-          <div className="border-t border-gray-200">
-            <div className="flex border-b border-gray-200">
-              <button
-                className={`py-4 px-6 text-sm font-medium border-b-2 ${
-                  activeTab === 'description' 
-                    ? 'border-blue-600 text-blue-600' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-                onClick={() => setActiveTab('description')}
-              >
-                Description
-              </button>
-              <button
-                className={`py-4 px-6 text-sm font-medium border-b-2 ${
-                  activeTab === 'specs' 
-                    ? 'border-blue-600 text-blue-600' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-                onClick={() => setActiveTab('specs')}
-              >
-                Specifications
-              </button>
-              <button
-                className={`py-4 px-6 text-sm font-medium border-b-2 ${
-                  activeTab === 'reviews' 
-                    ? 'border-blue-600 text-blue-600' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-                onClick={() => setActiveTab('reviews')}
-              >
-                Reviews ({productReviews.length})
-              </button>
-            </div>
-            
-            <div className="p-6">
-              {activeTab === 'description' && (
-                <div>
-                  <p className="text-gray-700 leading-relaxed">{product.description}</p>
-                  <p className="text-gray-700 leading-relaxed mt-4">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla euismod, nisl eget ultricies aliquam, nunc nisl aliquet nunc, eget ultricies nisl nisl eget ultricies aliquam, nunc nisl aliquet nunc, eget ultricies aliquam, nunc nisl aliquet nunc, eget ultricies nisl nisl eget ultricies aliquam, nunc nisl aliquet nunc, eget ultricies.
-                  </p>
-                </div>
-              )}
-              
-              {activeTab === 'specs' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">Product Specifications</h3>
-                    <ul className="space-y-2 text-gray-700">
-                      <li className="flex items-center justify-between">
-                        <span className="text-gray-500">Brand</span>
-                        <span>{product.brand}</span>
-                      </li>
-                      <li className="flex items-center justify-between">
-                        <span className="text-gray-500">Category</span>
-                        <span>{product.category}</span>
-                      </li>
-                      <li className="flex items-center justify-between">
-                        <span className="text-gray-500">In Stock</span>
-                        <span>{product.stock}</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">Shipping Information</h3>
-                    <ul className="space-y-2 text-gray-700">
-                      <li className="flex items-center justify-between">
-                        <span className="text-gray-500">Shipping</span>
-                        <span>Free over $50</span>
-                      </li>
-                      <li className="flex items-center justify-between">
-                        <span className="text-gray-500">Estimated delivery</span>
-                        <span>2-5 business days</span>
-                      </li>
-                      <li className="flex items-center justify-between">
-                        <span className="text-gray-500">Return policy</span>
-                        <span>30 days</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-              
-              {activeTab === 'reviews' && (
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-4">Customer Reviews</h3>
-                  
-                  {productReviews.length > 0 ? (
-                    <div className="space-y-6">
-                      {productReviews.map((review) => (
-                        <div key={review.id} className="border-b border-gray-200 pb-6">
-                          <div className="flex items-center mb-2">
-                            <img
-                              src={review.userAvatar || `https://i.pravatar.cc/150?img=${review.id}`}
-                              alt={review.userName}
-                              className="w-10 h-10 rounded-full mr-3"
-                            />
-                            <div>
-                              <p className="font-medium text-gray-900">{review.userName}</p>
-                              <span className="text-sm text-gray-500">{review.date}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center mb-2">
-                            {[...Array(5)].map((_, i) => (
-                              <Star 
-                                key={i} 
-                                size={16} 
-                                className={i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'} 
-                              />
-                            ))}
-                          </div>
-                          <p className="text-gray-700">{review.comment}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">No reviews yet. Be the first to review this product!</p>
-                  )}
-                  
-                  <button className="mt-6 bg-blue-600 text-white font-medium py-2 px-4 rounded hover:bg-blue-700 transition-colors">
-                    Write a Review
-                  </button>
-                </div>
-              )}
-            </div>
+          {/* Product Description */}
+          <div className="border-t border-gray-200 p-6">
+            <h2 className="text-lg font-semibold mb-4">Product Description</h2>
+            <p className="text-gray-700 whitespace-pre-line">{product.description}</p>
           </div>
         </div>
         
