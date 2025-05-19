@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ShoppingCart, ArrowRight, Mail } from 'lucide-react';
+import { ShoppingCart, ArrowRight, Mail, AlertCircle } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -10,6 +10,7 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const { login, signup, resetPassword, signInWithGoogle } = useAuth();
 
@@ -21,6 +22,7 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
       if (isResetPassword) {
@@ -32,8 +34,9 @@ const LoginPage: React.FC = () => {
       } else {
         await signup(email, password, { full_name: fullName });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Authentication error:', error);
+      setError(error?.message || 'Invalid login credentials. Please check your email and password.');
     } finally {
       setIsLoading(false);
     }
@@ -65,7 +68,10 @@ const LoginPage: React.FC = () => {
             <>
               {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
               <button
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setError(null);
+                }}
                 className="font-medium text-blue-600 hover:text-blue-500"
               >
                 {isLogin ? 'Sign up' : 'Sign in'}
@@ -77,6 +83,13 @@ const LoginPage: React.FC = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start">
+              <AlertCircle className="w-5 h-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLogin && !isResetPassword && (
               <div>
@@ -152,7 +165,10 @@ const LoginPage: React.FC = () => {
                 <div className="text-sm">
                   <button
                     type="button"
-                    onClick={() => setIsResetPassword(true)}
+                    onClick={() => {
+                      setIsResetPassword(true);
+                      setError(null);
+                    }}
                     className="font-medium text-blue-600 hover:text-blue-500"
                   >
                     Forgot your password?
@@ -198,11 +214,13 @@ const LoginPage: React.FC = () => {
                 type="button"
                 onClick={async () => {
                   setIsLoading(true);
+                  setError(null);
                   try {
-                    await signInWithGoogle(); // Aquí usa la función correcta
+                    await signInWithGoogle();
                     navigate(from, { replace: true });
-                  } catch (error) {
+                  } catch (error: any) {
                     console.error('Google login error:', error);
+                    setError(error?.message || 'Failed to sign in with Google. Please try again.');
                   } finally {
                     setIsLoading(false);
                   }
@@ -217,7 +235,6 @@ const LoginPage: React.FC = () => {
                 Sign in with Google
               </button>
             </div>
-
           </form>
         </div>
       </div>
