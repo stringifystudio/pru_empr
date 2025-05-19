@@ -6,12 +6,13 @@ import toast from 'react-hot-toast';
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  userRole: string | null; // <-- agregado
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, metadata: { full_name: string }) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>; // <-- agregado
+  signInWithGoogle: () => Promise<void>;
   loading: boolean;
 }
 
@@ -19,25 +20,56 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null); // <-- agregado
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    const getSessionAndRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        await fetchUserRole(currentUser.id);
+      }
       setLoading(false);
-    });
+    };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    getSessionAndRole();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        await fetchUserRole(currentUser.id);
+      } else {
+        setUserRole(null); // limpiar rol al cerrar sesión
+      }
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  // 🔍 Obtener el rol desde la tabla profiles
+  const fetchUserRole = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching user role:', error.message);
+      toast.error('No se pudo obtener el rol del usuario.');
+      setUserRole(null);
+    } else {
+      setUserRole(data?.role || null);
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast.success('Successfully logged in!');
     } catch (error: any) {
@@ -107,7 +139,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         },
       });
       if (error) throw error;
-      // No toast aquí porque redirige.
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -119,12 +150,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         user,
         isAuthenticated: !!user,
+        userRole, // <-- agregado
         login,
         signup,
         logout,
         resetPassword,
         updatePassword,
-        signInWithGoogle, // <-- incluido en el contexto
+        signInWithGoogle,
         loading,
       }}
     >
