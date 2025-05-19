@@ -1,174 +1,204 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
-import toast from 'react-hot-toast';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, ShoppingCart, User, Heart, Menu, X } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 
-interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
-  userRole: string | null; // <-- agregado
-  login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, metadata: { full_name: string }) => Promise<void>;
-  logout: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  updatePassword: (newPassword: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
-  loading: boolean;
-}
+const Header: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
+  const { itemCount } = useCart();
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null); // <-- agregado
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const getSessionAndRole = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) {
-        await fetchUserRole(currentUser.id);
-      }
-      setLoading(false);
-    };
-
-    getSessionAndRole();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) {
-        await fetchUserRole(currentUser.id);
-      } else {
-        setUserRole(null); // limpiar rol al cerrar sesión
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // 🔍 Obtener el rol desde la tabla profiles
-  const fetchUserRole = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      console.error('Error fetching user role:', error.message);
-      toast.error('No se pudo obtener el rol del usuario.');
-      setUserRole(null);
-    } else {
-      setUserRole(data?.role || null);
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
-  const login = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      toast.success('Successfully logged in!');
-    } catch (error: any) {
-      toast.error(error.message);
-      throw error;
-    }
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
-  const signup = async (email: string, password: string, metadata: { full_name: string }) => {
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: metadata },
-      });
-      if (error) throw error;
-      toast.success('Registration successful! Please check your email to verify your account.');
-    } catch (error: any) {
-      toast.error(error.message);
-      throw error;
-    }
-  };
+  const userName = user?.user_metadata?.full_name || 'User';
+  const firstName = userName.split(' ')[0];
 
-  const logout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      toast.success('Successfully logged out!');
-    } catch (error: any) {
-      toast.error(error.message);
-      throw error;
-    }
-  };
+  const role = user?.user_metadata?.role; // Suponiendo que el rol viene desde user_metadata
 
-  const resetPassword = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/update-password`,
-      });
-      if (error) throw error;
-      toast.success('Password reset instructions have been sent to your email!');
-    } catch (error: any) {
-      toast.error(error.message);
-      throw error;
-    }
-  };
-
-  const updatePassword = async (newPassword: string) => {
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-      if (error) throw error;
-      toast.success('Password successfully updated!');
-    } catch (error: any) {
-      toast.error(error.message);
-      throw error;
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
-      if (error) throw error;
-    } catch (error: any) {
-      toast.error(error.message);
-      throw error;
-    }
-  };
+  const isAdmin = role === 'admin';
+  const isSeller = role === 'seller';
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        userRole, // <-- agregado
-        login,
-        signup,
-        logout,
-        resetPassword,
-        updatePassword,
-        signInWithGoogle,
-        loading,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <header className="bg-white shadow-md sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
+          <Link to="/" className="text-2xl font-bold text-blue-600 flex items-center">
+            <ShoppingCart className="mr-2" />
+            <span>MercadoApp</span>
+          </Link>
+
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 mx-8 relative">
+            <input
+              type="text"
+              placeholder="Buscar productos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full py-2 px-4 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 rounded-r-lg hover:bg-blue-700 transition-colors"
+            >
+              <Search size={20} />
+            </button>
+          </form>
+
+          <div className="hidden md:flex items-center space-x-4">
+            <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors">
+              <div className="flex flex-col items-center">
+                <Heart size={20} />
+                <span className="text-xs mt-1">Wishlist</span>
+              </div>
+            </Link>
+
+            <Link to="/cart" className="text-gray-700 hover:text-blue-600 transition-colors relative">
+              <div className="flex flex-col items-center">
+                <ShoppingCart size={20} />
+                {itemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {itemCount}
+                  </span>
+                )}
+                <span className="text-xs mt-1">Cart</span>
+              </div>
+            </Link>
+
+            {isAuthenticated ? (
+              <div className="relative group">
+                <div className="flex flex-col items-center cursor-pointer">
+                  <div className="w-7 h-7 rounded-full overflow-hidden">
+                    {user?.user_metadata?.avatar_url ? (
+                      <img
+                        src={user.user_metadata.avatar_url}
+                        alt={firstName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User size={20} className="bg-gray-200 p-1 rounded-full" />
+                    )}
+                  </div>
+                  <span className="text-xs mt-1">{firstName}</span>
+                </div>
+
+                <div className="absolute right-0 mt-1 w-56 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                  <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    Perfil
+                  </Link>
+                  <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    Mis Compras
+                  </Link>
+                  {(isAdmin || isSeller) && (
+                    <>
+                      <Link to="/admin-panel" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        Panel de Administración
+                      </Link>
+                      <Link to="/product-management" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        Gestión de Productos
+                      </Link>
+                    </>
+                  )}
+                  <button
+                    onClick={logout}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <Link to="/login" className="text-gray-700 hover:text-blue-600 transition-colors">
+                <div className="flex flex-col items-center">
+                  <User size={20} />
+                  <span className="text-xs mt-1">Login</span>
+                </div>
+              </Link>
+            )}
+          </div>
+
+          <button onClick={toggleMenu} className="md:hidden text-gray-700">
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Mobile Search */}
+        <form onSubmit={handleSearch} className="mt-3 md:hidden flex relative">
+          <input
+            type="text"
+            placeholder="Buscar productos..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full py-2 px-4 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 rounded-r-lg hover:bg-blue-700 transition-colors"
+          >
+            <Search size={20} />
+          </button>
+        </form>
+      </div>
+
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white shadow-lg py-3">
+          <div className="container mx-auto px-4 flex flex-col space-y-3">
+            <Link to="/wishlist" className="flex items-center py-2 hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>
+              <Heart size={20} className="mr-3" />
+              Wishlist
+            </Link>
+            <Link to="/cart" className="flex items-center py-2 hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>
+              <ShoppingCart size={20} className="mr-3" />
+              Cart
+              {itemCount > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {itemCount}
+                </span>
+              )}
+            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link to="/profile" className="py-2 hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>
+                  Perfil
+                </Link>
+                <Link to="/orders" className="py-2 hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>
+                  Mis Compras
+                </Link>
+                {(isAdmin || isSeller) && (
+                  <>
+                    <Link to="/admin-panel" className="py-2 hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>
+                      Panel de Administración
+                    </Link>
+                    <Link to="/product-management" className="py-2 hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>
+                      Gestión de Productos
+                    </Link>
+                  </>
+                )}
+                <button onClick={() => { logout(); setIsMenuOpen(false); }} className="py-2 hover:text-blue-600">
+                  Cerrar sesión
+                </button>
+              </>
+            ) : (
+              <Link to="/login" className="py-2 hover:text-blue-600" onClick={() => setIsMenuOpen(false)}>
+                Login
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
   );
 };
 
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export default Header;
