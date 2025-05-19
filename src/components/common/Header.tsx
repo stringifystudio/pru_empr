@@ -22,6 +22,10 @@ const Header: React.FC = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  // Get the user's name from metadata or user_metadata
+  const userName = user?.user_metadata?.full_name || 'User';
+  const firstName = userName.split(' ')[0];
+
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
@@ -80,20 +84,22 @@ const Header: React.FC = () => {
               <div className="relative group">
                 <div className="flex flex-col items-center cursor-pointer">
                   <div className="w-7 h-7 rounded-full overflow-hidden">
-                    {user?.avatar ? (
-                      <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                    {user?.user_metadata?.avatar_url ? (
+                      <img 
+                        src={user.user_metadata.avatar_url} 
+                        alt={firstName} 
+                        className="w-full h-full object-cover" 
+                      />
                     ) : (
                       <User size={20} className="bg-gray-200 p-1 rounded-full" />
                     )}
                   </div>
-                  <span className="text-xs mt-1">
-  {user?.user_metadata?.full_name?.split(' ')[0] ?? ''}
-</span>
+                  <span className="text-xs mt-1">{firstName}</span>
                 </div>
                 <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
                   <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</Link>
                   <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Orders</Link>
-                  {user?.isSeller && (
+                  {user?.user_metadata?.is_seller && (
                     <Link to="/seller-dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Seller Dashboard</Link>
                   )}
                   <button 
@@ -188,7 +194,7 @@ const Header: React.FC = () => {
                 >
                   <span className="ml-7">Orders</span>
                 </Link>
-                {user?.isSeller && (
+                {user?.user_metadata?.is_seller && (
                   <Link 
                     to="/seller-dashboard" 
                     className="flex items-center py-2 hover:text-blue-600 transition-colors"
