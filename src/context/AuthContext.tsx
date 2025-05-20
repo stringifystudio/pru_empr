@@ -11,7 +11,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>; // <-- agregado
+  signInWithGoogle: () => Promise<void>;
   loading: boolean;
 }
 
@@ -51,7 +51,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: metadata },
+        options: {
+          data: metadata,
+          emailRedirectTo: `${window.location.origin}`,
+        },
       });
       if (error) throw error;
       toast.success('Registration successful! Please check your email to verify your account.');
@@ -103,11 +106,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}`,
         },
       });
       if (error) throw error;
-      // No toast aquí porque redirige.
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -124,7 +126,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         logout,
         resetPassword,
         updatePassword,
-        signInWithGoogle, // <-- incluido en el contexto
+        signInWithGoogle,
         loading,
       }}
     >
