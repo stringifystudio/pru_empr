@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Phone, User, Settings, ShoppingBag, CreditCard, Bell, Shield, LogOut } from 'lucide-react';
+import { Mail, Phone, User, Settings, ShoppingBag, CreditCard, Bell, Shield, LogOut, PlusCircle, Edit } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const ProfilePage: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, userRole, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
 
   if (!user) {
@@ -27,10 +27,15 @@ const ProfilePage: React.FC = () => {
   const avatarUrl = user.user_metadata?.avatar_url || 'https://via.placeholder.com/100';
   const email = user.email || 'No email available';
   const phone = user.phone || 'No phone number';
+  const isAdmin = userRole === 'admin';
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'orders', label: 'Orders', icon: ShoppingBag },
+    ...(isAdmin ? [
+      { id: 'create-product', label: 'Create Product', icon: PlusCircle },
+      { id: 'edit-product', label: 'Edit Products', icon: Edit }
+    ] : []),
     { id: 'payment', label: 'Payment Methods', icon: CreditCard },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: Shield },
@@ -53,6 +58,11 @@ const ProfilePage: React.FC = () => {
                   />
                   <h2 className="text-xl font-semibold">{fullName}</h2>
                   <p className="text-gray-500 text-sm">{email}</p>
+                  {isAdmin && (
+                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mt-2">
+                      Admin
+                    </span>
+                  )}
                 </div>
 
                 <nav className="space-y-2">
@@ -141,6 +151,32 @@ const ProfilePage: React.FC = () => {
                       className="text-blue-600 hover:text-blue-800 transition-colors"
                     >
                       View All Orders
+                    </Link>
+                  </div>
+                )}
+
+                {activeTab === 'create-product' && isAdmin && (
+                  <div>
+                    <h3 className="text-xl font-semibold mb-6">Create New Product</h3>
+                    <Link
+                      to="/admin/create-product"
+                      className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors inline-flex items-center"
+                    >
+                      <PlusCircle size={18} className="mr-2" />
+                      Create New Product
+                    </Link>
+                  </div>
+                )}
+
+                {activeTab === 'edit-product' && isAdmin && (
+                  <div>
+                    <h3 className="text-xl font-semibold mb-6">Edit Products</h3>
+                    <Link
+                      to="/admin/edit-product"
+                      className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors inline-flex items-center"
+                    >
+                      <Edit size={18} className="mr-2" />
+                      Manage Products
                     </Link>
                   </div>
                 )}
