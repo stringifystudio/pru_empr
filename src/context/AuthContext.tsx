@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  userRole: string | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, metadata: { full_name: string }) => Promise<void>;
   logout: () => Promise<void>;
@@ -19,16 +20,41 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      setUserRole(data?.role || null);
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+      setUserRole(null);
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserRole(session.user.id);
+      }
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserRole(session.user.id);
+      } else {
+        setUserRole(null);
+      }
       setLoading(false);
     });
 
@@ -121,6 +147,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         user,
         isAuthenticated: !!user,
+        userRole,
         login,
         signup,
         logout,
