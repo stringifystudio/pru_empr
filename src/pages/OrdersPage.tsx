@@ -151,9 +151,9 @@ const OrdersPage: React.FC = () => {
                     <div>
                       <p className="text-sm text-gray-500">Shipping Address</p>
                       <p className="text-sm">
-                        {order.shippingAddress.fullName}, {order.shippingAddress.address},{' '}
-                        {order.shippingAddress.city}, {order.shippingAddress.state}{' '}
-                        {order.shippingAddress.zipCode}
+                        {order.shipping_address.fullName}, {order.shipping_address.address},{' '}
+                        {order.shipping_address.city}, {order.shipping_address.state}{' '}
+                        {order.shipping_address.zipCode}
                       </p>
                     </div>
                     <Link
