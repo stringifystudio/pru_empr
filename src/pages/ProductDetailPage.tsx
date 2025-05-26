@@ -25,12 +25,7 @@ const ProductDetailPage: React.FC = () => {
         const { data: productData, error: productError } = await supabase
           .from('products')
           .select(`
-            *,
-            seller:seller_id (
-              id,
-              full_name,
-              rating
-            )
+            *
           `)
           .eq('id', id)
           .single();
