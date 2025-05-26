@@ -13,6 +13,8 @@ import OrdersPage from './pages/OrdersPage';
 import LoginPage from './pages/LoginPage';
 import UpdatePasswordPage from './pages/UpdatePasswordPage';
 import ProfilePage from './pages/ProfilePage';
+import CreateProductPage from './pages/CreateProductPage';
+import EditProductPage from './pages/EditProductPage';
 
 function App() {
   return (
@@ -31,6 +33,8 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/update-password" element={<UpdatePasswordPage />} />
+                <Route path="/admin/create-product" element={<CreateProductPage />} />
+                <Route path="/admin/edit-product" element={<EditProductPage />} />
               </Routes>
             </main>
             <Footer />
