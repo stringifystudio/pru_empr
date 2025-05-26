@@ -62,12 +62,7 @@ const ProductDetailPage: React.FC = () => {
         const { data: relatedData } = await supabase
           .from('products')
           .select(`
-            *,
-            seller:seller_id (
-              id,
-              full_name,
-              rating
-            )
+            *
           `)
           .eq('category', formattedProduct.category)
           .neq('id', id)
