@@ -21,6 +21,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     e.stopPropagation();
     addToCart(product);
   };
+
+function formatPrice(value) {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 2
+    }).format(value || 0);
+}
   
   return (
     <div 
@@ -76,16 +84,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <div>
               {discountedPrice ? (
                 <div className="flex items-center">
-                  <span className="text-lg font-bold text-gray-900">${discountedPrice.toFixed(2)}</span>
-                  <span className="ml-2 text-sm text-gray-500 line-through">${product.price.toFixed(2)}</span>
+                  <span className="text-lg font-bold text-gray-900">{formatPrice(discountedPrice)}</span>
+                  <span className="ml-2 text-sm text-gray-500 line-through">{formatPrice(product.price)}</span>
                 </div>
               ) : (
-                <span className="text-lg font-bold text-gray-900">${product.price.toFixed(2)}</span>
+                <span className="text-lg font-bold text-gray-900">{formatPrice(product.price)}</span>
               )}
             </div>
             
             <span className="text-xs text-gray-500">
-              {product.stock > 10 ? 'In Stock' : `Only ${product.stock} left`}
+              {product.stock > 10 ? 'En stock' : `Solo quedan ${product.stock}`}
             </span>
           </div>
         </div>
