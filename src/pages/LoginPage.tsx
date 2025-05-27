@@ -36,7 +36,7 @@ const LoginPage: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Authentication error:', error);
-      setError(error?.message || 'Invalid login credentials. Please check your email and password.');
+      setError(error?.message || 'Credenciales de inicio de sesión no válidas. Por favor, revise su correo electrónico y contraseña.');
     } finally {
       setIsLoading(false);
     }
@@ -51,10 +51,10 @@ const LoginPage: React.FC = () => {
         </Link>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           {isResetPassword 
-            ? 'Reset your password'
+            ? 'Restablece tu contraseña'
             : isLogin 
-              ? 'Sign in to your account' 
-              : 'Create a new account'}
+              ? 'Inicia sesión en tu cuenta' 
+              : 'Crea una nueva cuenta'}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           {isResetPassword ? (
@@ -62,11 +62,11 @@ const LoginPage: React.FC = () => {
               onClick={() => setIsResetPassword(false)}
               className="font-medium text-blue-600 hover:text-blue-500"
             >
-              Back to sign in
+              Volver para iniciar sesión
             </button>
           ) : (
             <>
-              {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
+              {isLogin ? "¿No tienes una cuenta?" : "¿Ya tienes una cuenta?"}{' '}
               <button
                 onClick={() => {
                   setIsLogin(!isLogin);
@@ -74,7 +74,7 @@ const LoginPage: React.FC = () => {
                 }}
                 className="font-medium text-blue-600 hover:text-blue-500"
               >
-                {isLogin ? 'Sign up' : 'Sign in'}
+                {isLogin ? 'Inscribirse' : 'Iniciar sesión'}
               </button>
             </>
           )}
@@ -94,7 +94,7 @@ const LoginPage: React.FC = () => {
             {!isLogin && !isResetPassword && (
               <div>
                 <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-                  Full Name
+                  Nombre completo
                 </label>
                 <div className="mt-1">
                   <input
@@ -112,7 +112,7 @@ const LoginPage: React.FC = () => {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+                Dirección de correo electrónico
               </label>
               <div className="mt-1">
                 <input
@@ -131,7 +131,7 @@ const LoginPage: React.FC = () => {
             {!isResetPassword && (
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
+                  Contraseña
                 </label>
                 <div className="mt-1">
                   <input
@@ -158,7 +158,7 @@ const LoginPage: React.FC = () => {
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label htmlFor="remember_me" className="ml-2 block text-sm text-gray-900">
-                    Remember me
+                    Acuérdate de mí
                   </label>
                 </div>
 
@@ -171,7 +171,7 @@ const LoginPage: React.FC = () => {
                     }}
                     className="font-medium text-blue-600 hover:text-blue-500"
                   >
-                    Forgot your password?
+                    ¿Olvidaste tu contraseña?
                   </button>
                 </div>
               </div>
@@ -189,18 +189,18 @@ const LoginPage: React.FC = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Processing...
+                    Tratamiento...
                   </span>
                 ) : (
                   <span className="flex items-center">
                     {isResetPassword ? (
                       <>
                         <Mail size={16} className="mr-2" />
-                        Send Reset Instructions
+                        Enviar instrucciones de reinicio
                       </>
                     ) : (
                       <>
-                        {isLogin ? 'Sign in' : 'Create account'}
+                        {isLogin ? 'Iniciar sesión' : 'Crear una cuenta'}
                         <ArrowRight size={16} className="ml-1" />
                       </>
                     )}
@@ -220,7 +220,7 @@ const LoginPage: React.FC = () => {
                     navigate(from, { replace: true });
                   } catch (error: any) {
                     console.error('Google login error:', error);
-                    setError(error?.message || 'Failed to sign in with Google. Please try again.');
+                    setError(error?.message || 'No se pudo iniciar sesión con Google. Inténtalo de nuevo.');
                   } finally {
                     setIsLoading(false);
                   }
@@ -232,7 +232,7 @@ const LoginPage: React.FC = () => {
                   alt="Google"
                   className="w-5 h-5 mr-2"
                 />
-                Sign in with Google
+               Iniciar sesión con Google
               </button>
             </div>
           </form>
