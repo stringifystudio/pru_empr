@@ -11,12 +11,12 @@ const ProfilePage: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Please log in to view your profile</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Por favor, inicia sesión para ver tu perfil</h2>
           <Link
             to="/login"
             className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
           >
-            Log In
+            Acceso
           </Link>
         </div>
       </div>
@@ -24,22 +24,21 @@ const ProfilePage: React.FC = () => {
   }
 
   const fullName = user.user_metadata?.full_name || 'N/A';
-  const avatarUrl = user.user_metadata?.avatar_url || 'https://via.placeholder.com/100';
-  const email = user.email || 'No email available';
-  const phone = user.phone || 'No phone number';
+  const email = user.email || 'No hay correo electrónico disponible';
+  const phone = user.phone || 'Sin número de teléfono';
   const isAdmin = userRole === 'admin';
 
   const tabs = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'orders', label: 'Orders', icon: ShoppingBag },
+    { id: 'profile', label: 'Perfil', icon: User },
+    { id: 'orders', label: 'Órdenes', icon: ShoppingBag },
     ...(isAdmin ? [
-      { id: 'create-product', label: 'Create Product', icon: PlusCircle },
-      { id: 'edit-product', label: 'Edit Products', icon: Edit }
+      { id: 'create-product', label: 'Crear producto', icon: PlusCircle },
+      { id: 'edit-product', label: 'Editar productos', icon: Edit }
     ] : []),
-    { id: 'payment', label: 'Payment Methods', icon: CreditCard },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'payment', label: 'Métodos de pago', icon: CreditCard },
+    { id: 'notifications', label: 'Notificaciones', icon: Bell },
+    { id: 'security', label: 'Seguridad', icon: Shield },
+    { id: 'settings', label: 'Ajustes', icon: Settings },
   ];
 
   return (
@@ -51,11 +50,17 @@ const ProfilePage: React.FC = () => {
             <div className="md:w-1/4">
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="text-center mb-6">
-                  <img
-                    src={avatarUrl}
-                    alt={fullName}
-                    className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-blue-100"
-                  />
+                  <div className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-blue-100 overflow-hidden bg-gray-200">
+                    {user.user_metadata?.avatar_url ? (
+                      <img
+                        src={user.user_metadata.avatar_url}
+                        alt={fullName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-full h-full p-4 text-gray-400" />
+                    )}
+                  </div>
                   <h2 className="text-xl font-semibold">{fullName}</h2>
                   <p className="text-gray-500 text-sm">{email}</p>
                   {isAdmin && (
@@ -88,7 +93,7 @@ const ProfilePage: React.FC = () => {
                     className="w-full flex items-center px-4 py-2 rounded-md text-red-600 hover:bg-red-50 transition-colors"
                   >
                     <LogOut size={18} className="mr-3" />
-                    Logout
+                    Cerrar sesión
                   </button>
                 </nav>
               </div>
@@ -99,11 +104,11 @@ const ProfilePage: React.FC = () => {
               <div className="bg-white rounded-lg shadow-sm p-6">
                 {activeTab === 'profile' && (
                   <div>
-                    <h3 className="text-xl font-semibold mb-6">Profile Information</h3>
+                    <h3 className="text-xl font-semibold mb-6">Información de perfil</h3>
                     <div className="space-y-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Full Name
+                          Nombre completo
                         </label>
                         <input
                           type="text"
@@ -114,7 +119,7 @@ const ProfilePage: React.FC = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Email Address
+                          Dirección de correo electrónico
                         </label>
                         <input
                           type="email"
@@ -125,7 +130,7 @@ const ProfilePage: React.FC = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Phone Number
+                          Número de teléfono
                         </label>
                         <input
                           type="tel"
@@ -136,7 +141,7 @@ const ProfilePage: React.FC = () => {
                       </div>
                       <div className="pt-4">
                         <button className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                          Edit Profile
+                          Editar perfil
                         </button>
                       </div>
                     </div>
@@ -145,61 +150,61 @@ const ProfilePage: React.FC = () => {
 
                 {activeTab === 'orders' && (
                   <div>
-                    <h3 className="text-xl font-semibold mb-6">Your Orders</h3>
+                    <h3 className="text-xl font-semibold mb-6">Tus pedidos</h3>
                     <Link
                       to="/orders"
                       className="text-blue-600 hover:text-blue-800 transition-colors"
                     >
-                      View All Orders
+                      Ver todos los pedidos
                     </Link>
                   </div>
                 )}
 
                 {activeTab === 'create-product' && isAdmin && (
                   <div>
-                    <h3 className="text-xl font-semibold mb-6">Create New Product</h3>
+                    <h3 className="text-xl font-semibold mb-6">Crear nuevo producto</h3>
                     <Link
                       to="/admin/create-product"
                       className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors inline-flex items-center"
                     >
                       <PlusCircle size={18} className="mr-2" />
-                      Create New Product
+                      Crear nuevo producto
                     </Link>
                   </div>
                 )}
 
                 {activeTab === 'edit-product' && isAdmin && (
                   <div>
-                    <h3 className="text-xl font-semibold mb-6">Edit Products</h3>
+                    <h3 className="text-xl font-semibold mb-6">Editar productos</h3>
                     <Link
                       to="/admin/edit-product"
                       className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors inline-flex items-center"
                     >
                       <Edit size={18} className="mr-2" />
-                      Manage Products
+                      Administrar productos
                     </Link>
                   </div>
                 )}
 
                 {activeTab === 'payment' && (
                   <div>
-                    <h3 className="text-xl font-semibold mb-6">Payment Methods</h3>
-                    <p className="text-gray-500">No payment methods added yet.</p>
+                    <h3 className="text-xl font-semibold mb-6">Métodos de pago</h3>
+                    <p className="text-gray-500">Aún no se han añadido métodos de pago.</p>
                     <button className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                      Add Payment Method
+                      Agregar método de pago
                     </button>
                   </div>
                 )}
 
                 {activeTab === 'notifications' && (
                   <div>
-                    <h3 className="text-xl font-semibold mb-6">Notification Preferences</h3>
+                    <h3 className="text-xl font-semibold mb-6">Preferencias de notificación</h3>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium">Order Updates</h4>
+                          <h4 className="font-medium">Actualizaciones de pedidos</h4>
                           <p className="text-sm text-gray-500">
-                            Receive notifications about your order status
+                            Recibe notificaciones sobre el estado de tu pedido
                           </p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -209,9 +214,9 @@ const ProfilePage: React.FC = () => {
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium">Promotions</h4>
+                          <h4 className="font-medium">Promociones</h4>
                           <p className="text-sm text-gray-500">
-                            Receive notifications about deals and promotions
+                            Recibe notificaciones sobre ofertas y promociones
                           </p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -225,21 +230,21 @@ const ProfilePage: React.FC = () => {
 
                 {activeTab === 'security' && (
                   <div>
-                    <h3 className="text-xl font-semibold mb-6">Security Settings</h3>
+                    <h3 className="text-xl font-semibold mb-6">Configuración de seguridad</h3>
                     <div className="space-y-6">
                       <div>
-                        <h4 className="font-medium mb-2">Change Password</h4>
+                        <h4 className="font-medium mb-2">Cambiar la contraseña</h4>
                         <Link
                           to="/update-password"
                           className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors inline-block"
                         >
-                          Update Password
+                          Actualizar contraseña
                         </Link>
                       </div>
                       <div>
-                        <h4 className="font-medium mb-2">Two-Factor Authentication</h4>
+                        <h4 className="font-medium mb-2">Autenticación de dos factores</h4>
                         <button className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors">
-                          Enable 2FA
+                          Habilitar 2FA
                         </button>
                       </div>
                     </div>
@@ -248,7 +253,7 @@ const ProfilePage: React.FC = () => {
 
                 {activeTab === 'settings' && (
                   <div>
-                    <h3 className="text-xl font-semibold mb-6">Account Settings</h3>
+                    <h3 className="text-xl font-semibold mb-6">Configuraciones de la cuenta</h3>
                     <div className="space-y-6">
                       <div>
                         <h4 className="font-medium mb-2">Language</h4>
@@ -259,7 +264,7 @@ const ProfilePage: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <h4 className="font-medium mb-2">Currency</h4>
+                        <h4 className="font-medium mb-2">Moneda</h4>
                         <select className="w-full px-3 py-2 border border-gray-300 rounded-md">
                           <option value="usd">USD ($)</option>
                           <option value="eur">EUR (€)</option>
@@ -267,9 +272,9 @@ const ProfilePage: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <h4 className="font-medium mb-2">Delete Account</h4>
+                        <h4 className="font-medium mb-2">Eliminar cuenta</h4>
                         <button className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition-colors">
-                          Delete Account
+                          Eliminar cuenta
                         </button>
                       </div>
                     </div>
