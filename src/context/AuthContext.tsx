@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      toast.success('Successfully logged in!');
+      toast.success('¡Has iniciado sesión exitosamente!');
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         },
       });
       if (error) throw error;
-      toast.success('Registration successful! Please check your email to verify your account.');
+      toast.success('¡Registro exitoso! Por favor, revise su correo electrónico para verificar su cuenta.');
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -107,7 +107,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         redirectTo: `${window.location.origin}/update-password`,
       });
       if (error) throw error;
-      toast.success('Password reset instructions have been sent to your email!');
+      toast.success('¡Se han enviado instrucciones para restablecer la contraseña a tu correo electrónico!');
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -120,7 +120,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         password: newPassword,
       });
       if (error) throw error;
-      toast.success('Password successfully updated!');
+      toast.success('¡Contraseña actualizada exitosamente!');
     } catch (error: any) {
       toast.error(error.message);
       throw error;
