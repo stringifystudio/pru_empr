@@ -1,14 +1,14 @@
 import { Product, Category, Review } from '../types';
 
 export const categories: Category[] = [
-  { id: '1', name: 'Women\'s Clothing', icon: 'shirt' },
-  { id: '2', name: 'Men\'s Clothing', icon: 'shirt' },
-  { id: '3', name: 'Jewelry', icon: 'gem' },
-  { id: '4', name: 'Accessories', icon: 'watch' },
-  { id: '5', name: 'Shoes', icon: 'footprints' },
-  { id: '6', name: 'Kids\' Clothing', icon: 'shirt' },
-  { id: '7', name: 'Bags', icon: 'shopping-bag' },
-  { id: '8', name: 'Sale', icon: 'badge-percent' },
+  { id: '1', name: 'Ropa de mujer', icon: 'shirt' },
+  { id: '2', name: 'Ropa de hombre', icon: 'shirt' },
+  { id: '3', name: 'Joyas', icon: 'gem' },
+  { id: '4', name: 'Acesorios', icon: 'watch' },
+  { id: '5', name: 'Zapatos', icon: 'footprints' },
+  { id: '6', name: 'Ropa para niños', icon: 'shirt' },
+  { id: '7', name: 'Bolsas', icon: 'shopping-bag' },
+  { id: '8', name: 'Venta', icon: 'badge-percent' },
 ];
 
 export const products: Product[] = [
@@ -103,7 +103,7 @@ export const products: Product[] = [
     rating: 4.6,
     stock: 30,
     brand: 'Luxe Bags',
-    category: 'Accessories',
+    category: 'Acesorios',
     thumbnail: 'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
     images: [
       'https://images.pexels.com/photos/1152077/pexels-photo-1152077.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
