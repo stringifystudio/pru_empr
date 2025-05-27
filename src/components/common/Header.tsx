@@ -4,6 +4,7 @@ import { Search, ShoppingCart, User, Heart, Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 
+
 const Header: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -64,7 +65,7 @@ const Header: React.FC = () => {
             <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors">
               <div className="flex flex-col items-center">
                 <Heart size={20} />
-                <span className="text-xs mt-1">Wishlist</span>
+                <span className="text-xs mt-1">Deseos</span>
               </div>
             </Link>
             
@@ -76,7 +77,7 @@ const Header: React.FC = () => {
                     {itemCount}
                   </span>
                 )}
-                <span className="text-xs mt-1">Cart</span>
+                <span className="text-xs mt-1">Carrito</span>
               </div>
             </Link>
             
@@ -97,16 +98,16 @@ const Header: React.FC = () => {
                   <span className="text-xs mt-1">{firstName}</span>
                 </div>
                 <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                  <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</Link>
-                  <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Orders</Link>
+                  <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Perfil</Link>
+                  <Link to="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Pedidos</Link>
                   {user?.user_metadata?.is_seller && (
-                    <Link to="/seller-dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Seller Dashboard</Link>
+                    <Link to="/seller-dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Panel de vendedor</Link>
                   )}
                   <button 
                     onClick={logout}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    Logout
+                    Cerrar sesión
                   </button>
                 </div>
               </div>
@@ -114,7 +115,7 @@ const Header: React.FC = () => {
               <Link to="/login" className="text-gray-700 hover:text-blue-600 transition-colors">
                 <div className="flex flex-col items-center">
                   <User size={20} />
-                  <span className="text-xs mt-1">Login</span>
+                  <span className="text-xs mt-1">Acceso</span>
                 </div>
               </Link>
             )}
@@ -160,7 +161,7 @@ const Header: React.FC = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               <Heart size={20} className="mr-3" />
-              <span>Wishlist</span>
+              <span>Deseos</span>
             </Link>
             
             <Link 
@@ -169,7 +170,7 @@ const Header: React.FC = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               <ShoppingCart size={20} className="mr-3" />
-              <span>Cart</span>
+              <span>Carrito</span>
               {itemCount > 0 && (
                 <span className="ml-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {itemCount}
@@ -185,14 +186,14 @@ const Header: React.FC = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <User size={20} className="mr-3" />
-                  <span>Profile</span>
+                  <span>Perfil</span>
                 </Link>
                 <Link 
                   to="/orders" 
                   className="flex items-center py-2 hover:text-blue-600 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <span className="ml-7">Orders</span>
+                  <span className="ml-7">Pedidos</span>
                 </Link>
                 {user?.user_metadata?.is_seller && (
                   <Link 
@@ -200,7 +201,7 @@ const Header: React.FC = () => {
                     className="flex items-center py-2 hover:text-blue-600 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <span className="ml-7">Seller Dashboard</span>
+                    <span className="ml-7">Panel de vendedor</span>
                   </Link>
                 )}
                 <button 
@@ -210,7 +211,7 @@ const Header: React.FC = () => {
                   }}
                   className="flex items-center py-2 hover:text-blue-600 transition-colors"
                 >
-                  <span className="ml-7">Logout</span>
+                  <span className="ml-7">Cerrar sesion</span>
                 </button>
               </>
             ) : (
@@ -220,7 +221,7 @@ const Header: React.FC = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <User size={20} className="mr-3" />
-                <span>Login</span>
+                <span>Aceso</span>
               </Link>
             )}
           </div>
