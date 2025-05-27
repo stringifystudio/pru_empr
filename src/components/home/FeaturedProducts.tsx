@@ -58,7 +58,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">{title}</h2>
           <a href="/products" className="text-blue-600 hover:text-blue-800 transition-colors font-medium">
-            View All
+            Ver todo
           </a>
         </div>
         
