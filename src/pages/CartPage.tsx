@@ -38,22 +38,32 @@ const CartPage: React.FC = () => {
       setCouponError('Invalid coupon code');
     }
   };
+  
+function formatPrice(value) {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 2
+    }).format(value || 0);
+}
 
+
+  
   return (
     <div className="bg-gray-50 min-h-screen py-8">
       <div className="container mx-auto px-4">
-        <h1 className="text-2xl font-bold mb-8">Your Shopping Cart</h1>
+        <h1 className="text-2xl font-bold mb-8">Tu carrito de compras</h1>
 
         {itemCount === 0 ? (
           <div className="bg-white p-8 rounded-lg shadow-sm flex flex-col items-center justify-center">
             <ShoppingBag size={64} className="text-gray-300 mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Your cart is empty</h2>
-            <p className="text-gray-500 mb-6">Looks like you haven't added any products to your cart yet.</p>
+            <h2 className="text-xl font-semibold mb-2">Tu carrito está vacío</h2>
+            <p className="text-gray-500 mb-6">Parece que aún no has añadido ningún producto a tu carrito.</p>
             <Link 
               to="/" 
               className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
             >
-              Start Shopping
+              Empezar a comprar
             </Link>
           </div>
         ) : (
@@ -63,13 +73,13 @@ const CartPage: React.FC = () => {
               <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-lg font-semibold">Cart Items ({itemCount})</h2>
+                    <h2 className="text-lg font-semibold">Artículos del carrito ({itemCount})</h2>
                     <button 
                       onClick={clearCart}
                       className="text-gray-500 hover:text-red-600 text-sm flex items-center"
                     >
                       <Trash2 size={16} className="mr-1" />
-                      Clear Cart
+                     Limpiar carrito
                     </button>
                   </div>
                 </div>
@@ -132,14 +142,14 @@ const CartPage: React.FC = () => {
                             <div className="text-right">
                               {item.product.discountPercentage ? (
                                 <div>
-                                  <span className="text-lg font-semibold">${(discountedPrice * item.quantity).toFixed(2)}</span>
+                                  <span className="text-lg font-semibold">{formatPrice(discountedPrice * item.quantity)}</span>
                                   <span className="text-sm text-gray-500 line-through ml-2">
-                                    ${(item.product.price * item.quantity).toFixed(2)}
+                                    ${(item.product.price * item.quantity).formatearCOP}
                                   </span>
                                 </div>
                               ) : (
                                 <span className="text-lg font-semibold">
-                                  ${(item.product.price * item.quantity).toFixed(2)}
+                                  {formatPrice(item.product.price * item.quantity)}
                                 </span>
                               )}
                             </div>
@@ -156,31 +166,31 @@ const CartPage: React.FC = () => {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-sm overflow-hidden sticky top-24">
                 <div className="p-6 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+                  <h2 className="text-lg font-semibold mb-4">Resumen del pedido</h2>
                   
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-gray-600">
                       <span>Subtotal</span>
-                      <span>${total.toFixed(2)}</span>
+                      <span>{formatPrice(total)}</span>
                     </div>
                     <div className="flex justify-between text-gray-600">
-                      <span>Shipping</span>
+                      <span>Envío</span>
                       <span>
                         {shippingCost === 0 ? (
-                          <span className="text-green-600">Free</span>
+                          <span className="text-green-600">Gratis</span>
                         ) : (
-                          `$${shippingCost.toFixed(2)}`
+                          `${formatPrice(shippingCost)}`
                         )}
                       </span>
                     </div>
                     <div className="flex justify-between text-gray-600">
-                      <span>Estimated Tax</span>
-                      <span>${tax.toFixed(2)}</span>
+                      <span>Impuesto estimado</span>
+                      <span>{formatPrice(tax)}</span>
                     </div>
                     {total > 50 && (
                       <div className="flex justify-between text-green-600 text-sm">
-                        <span>Free shipping applied</span>
-                        <span>-$5.99</span>
+                        <span>Envío gratuito aplicado</span>
+                        <span>-$..</span>
                       </div>
                     )}
                   </div>
@@ -188,13 +198,13 @@ const CartPage: React.FC = () => {
                   <div className="border-t border-gray-200 pt-3 mb-6">
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total</span>
-                      <span>${orderTotal.toFixed(2)}</span>
+                      <span>{formatPrice(orderTotal)}</span>
                     </div>
                   </div>
                   
                   <form onSubmit={handleApplyCoupon} className="mb-6">
                     <label htmlFor="coupon" className="block text-sm font-medium text-gray-700 mb-1">
-                      Promo Code
+                      Código promocional
                     </label>
                     <div className="flex">
                       <input
@@ -209,7 +219,7 @@ const CartPage: React.FC = () => {
                         type="submit"
                         className="bg-gray-800 text-white px-4 py-2 rounded-r hover:bg-gray-700 transition-colors"
                       >
-                        Apply
+                        Aplicar
                       </button>
                     </div>
                     {couponError && <p className="text-red-600 text-sm mt-1">{couponError}</p>}
@@ -220,7 +230,7 @@ const CartPage: React.FC = () => {
                       to="/checkout"
                       className="block w-full bg-blue-600 text-white text-center font-medium py-3 rounded-md hover:bg-blue-700 transition-colors"
                     >
-                      Proceed to Checkout <ArrowRight size={16} className="inline ml-1" />
+                      Pasar por la caja <ArrowRight size={16} className="inline ml-1" />
                     </Link>
                   ) : (
                     <div>
@@ -228,10 +238,10 @@ const CartPage: React.FC = () => {
                         to="/login"
                         className="block w-full bg-blue-600 text-white text-center font-medium py-3 rounded-md hover:bg-blue-700 transition-colors mb-3"
                       >
-                        Login to Checkout
+                        Iniciar sesión para paga
                       </Link>
                       <p className="text-sm text-gray-500 text-center">
-                        or <Link to="/checkout" className="text-blue-600 hover:underline">Continue as Guest</Link>
+                        o <Link to="/checkout" className="text-blue-600 hover:underline">Continuar como invitado</Link>
                       </p>
                     </div>
                   )}
