@@ -4,37 +4,22 @@ import { Product } from '../types';
 export async function getProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from('products')
-    .select('*') // Eliminamos la relación con seller
+    .select('*')
     .order('created_at', { ascending: false });
 
   if (error) {
     throw new Error(`Error fetching products: ${error.message}`);
   }
 
-  return data; // Ya no necesitamos mapear seller
+  return data;
 }
 
-export async function createProduct(product: Omit<Product, 'id' | 'seller'>) {
-  const {
-    data: { user },
-    error: userError
-  } = await supabase.auth.getUser();
+export async function createProduct(product: Omit<Product, 'id'>) {
 
-  if (userError || !user) {
-    throw new Error('No se pudo obtener el usuario autenticado.');
-  }
-
-  console.log('USER:', user);
-  console.log('product to insert', { ...product, seller_id: user.id });
 
   const { data, error } = await supabase
     .from('products')
-    .insert([
-      {
-        ...product,
-        seller_id: user.id
-      }
-    ])
+    .insert([product])
     .select()
     .single();
 
