@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      toast.success('Successfully logged out!');
+      toast.success('¡Cierre de sesión exitosamente!');
     } catch (error: any) {
       toast.error(error.message);
       throw error;
