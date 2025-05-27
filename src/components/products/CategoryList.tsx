@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { Shirt, Gem, Watch, ShoppingBag, BadgePercent, Footprints } from 'lucide-react';
 import { Category } from '../../types';
 
-interface CategoryListProps {
+interface ListaCategoriasProps {
   categories: Category[];
 }
 
-const CategoryList: React.FC<CategoryListProps> = ({ categories }) => {
-  const getIconForCategory = (iconName: string) => {
+const ListaCategorias: React.FC<ListaCategoriasProps> = ({ categories }) => {
+  const obtenerIconoPorCategoria = (iconName: string) => {
     switch (iconName) {
       case 'shirt':
         return <Shirt size={24} className="mb-2" />;
@@ -29,7 +29,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories }) => {
 
   return (
     <div className="py-8">
-      <h2 className="text-2xl font-bold mb-6 text-center">Browse Categories</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center">Explorar Categorías</h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4">
         {categories.map((category) => (
           <Link
@@ -38,7 +38,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories }) => {
             className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 text-center"
           >
             <div className="text-blue-600 mb-2">
-              {getIconForCategory(category.icon)}
+              {obtenerIconoPorCategoria(category.icon)}
             </div>
             <span className="text-sm font-medium text-gray-700">{category.name}</span>
           </Link>
@@ -48,4 +48,4 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories }) => {
   );
 };
 
-export default CategoryList;
+export default ListaCategorias;
