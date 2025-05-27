@@ -22,57 +22,51 @@ const ProductDetailPage: React.FC = () => {
       try {
         if (!id) return;
 
+        // Fetch main product by id
         const { data: productData, error: productError } = await supabase
           .from('products')
-          .select(`
-            *
-          `)
+          .select('*')
           .eq('id', id)
           .single();
 
         if (productError) throw productError;
-
         if (!productData) {
           setError('Product not found');
           setLoading(false);
           return;
         }
 
+        // Normalize images field: if no images array, fallback to thumbnail
+        const imagesArray = productData.images
+          ? Array.isArray(productData.images) 
+            ? productData.images 
+            : [productData.images] 
+          : productData.thumbnail 
+            ? [productData.thumbnail] 
+            : [];
+
         const formattedProduct: Product = {
           ...productData,
-          seller: {
-            id: productData.seller?.id || '',
-            name: productData.seller?.full_name || 'Anonymous',
-            rating: productData.seller?.rating || 4.5
-          },
-          images: productData.images ? 
-            (Array.isArray(productData.images) ? productData.images : [productData.images]) 
-            : [productData.thumbnail]
+          images: imagesArray,
+          // aseguramos que thumbnail sea la primera imagen si está definida
+          thumbnail: productData.thumbnail || imagesArray[0] || ''
         };
 
         setProduct(formattedProduct);
-        setSelectedImage(formattedProduct.thumbnail);
+        setSelectedImage(formattedProduct.images[0] || '');
 
-        // Fetch related products
-        const { data: relatedData } = await supabase
-          .from('products')
-          .select(`
-            *
-          `)
-          .eq('category', formattedProduct.category)
-          .neq('id', id)
-          .limit(4);
+        // Fetch related products only if category exists
+        if (formattedProduct.category) {
+          const { data: relatedData, error: relatedError } = await supabase
+            .from('products')
+            .select('*')
+            .eq('category', formattedProduct.category)
+            .neq('id', id)
+            .limit(4);
 
-        if (relatedData) {
-          const formattedRelated = relatedData.map(item => ({
-            ...item,
-            seller: {
-              id: item.seller?.id || '',
-              name: item.seller?.full_name || 'Anonymous',
-              rating: item.seller?.rating || 4.5
-            }
-          }));
-          setRelatedProducts(formattedRelated);
+          if (!relatedError && relatedData) {
+            setRelatedProducts(relatedData);
+          }
         }
 
       } catch (err) {
@@ -86,8 +80,9 @@ const ProductDetailPage: React.FC = () => {
     fetchProduct();
   }, [id]);
 
+  // Agregar al carrito con cantidad
   const handleAddToCart = () => {
-    if (product) {
+    if (product && quantity > 0 && product.stock >= quantity) {
       for (let i = 0; i < quantity; i++) {
         addToCart(product);
       }
@@ -95,12 +90,24 @@ const ProductDetailPage: React.FC = () => {
   };
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setQuantity(parseInt(e.target.value));
+    const val = parseInt(e.target.value);
+    if (val > 0 && product && val <= product.stock) {
+      setQuantity(val);
+    }
   };
 
   const handleGoBack = () => {
     navigate(-1);
   };
+
+
+  function formatPrice(value) {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 2
+    }).format(value || 0);
+}
 
   if (loading) {
     return (
@@ -123,7 +130,7 @@ const ProductDetailPage: React.FC = () => {
             onClick={handleGoBack}
             className="text-blue-600 hover:text-blue-800 font-medium"
           >
-            Go Back
+            Volver
           </button>
         </div>
       </div>
@@ -141,10 +148,10 @@ const ProductDetailPage: React.FC = () => {
         <div className="flex items-center text-sm text-gray-500 mb-6">
           <button onClick={handleGoBack} className="flex items-center hover:text-blue-600 transition-colors">
             <ArrowLeft size={16} className="mr-1" />
-            <span>Back</span>
+            <span>Volver</span>
           </button>
           <ChevronRight size={16} className="mx-2" />
-          <a href="/" className="hover:text-blue-600 transition-colors">Home</a>
+          <a href="/" className="hover:text-blue-600 transition-colors">Inicio</a>
           <ChevronRight size={16} className="mx-2" />
           <a href={`/category/${product.category}`} className="hover:text-blue-600 transition-colors">{product.category}</a>
           <ChevronRight size={16} className="mx-2" />
@@ -200,7 +207,9 @@ const ProductDetailPage: React.FC = () => {
                   <span className="ml-2 text-gray-600 text-sm">{product.rating}</span>
                 </div>
                 <span className="mx-2 text-gray-300">|</span>
-                <span className="text-green-600 text-sm font-medium">
+                <span className={`text-sm font-medium ${
+                  product.stock > 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
                   {product.stock > 0 ? `In Stock (${product.stock} available)` : 'Out of Stock'}
                 </span>
               </div>
@@ -208,26 +217,26 @@ const ProductDetailPage: React.FC = () => {
               <div className="mb-6">
                 {discountedPrice ? (
                   <div className="flex items-center">
-                    <span className="text-3xl font-bold text-gray-900">${discountedPrice.toFixed(2)}</span>
-                    <span className="ml-2 text-lg text-gray-500 line-through">${product.price.toFixed(2)}</span>
+                    <span className="text-3xl font-bold text-gray-900">{formatPrice(discountedPrice)}</span>
+                    <span className="ml-2 text-lg text-gray-500 line-through">{formatPrice(product.price)}</span>
                     <span className="ml-2 bg-red-100 text-red-700 text-sm px-2 py-1 rounded">
                       Save {Math.round(product.discountPercentage)}%
                     </span>
                   </div>
                 ) : (
-                  <span className="text-3xl font-bold text-gray-900">${product.price.toFixed(2)}</span>
+                  <span className="text-3xl font-bold text-gray-900">{formatPrice(product.price)}</span>
                 )}
               </div>
               
               <div className="border-t border-gray-200 pt-6 mb-6">
                 <div className="flex items-center text-sm text-gray-600 mb-4">
                   <Truck className="mr-2 text-blue-600" size={18} />
-                  <p>Free shipping on orders over $50</p>
+                  <p>Envío gratuito en pedidos superiores a $50</p>
                 </div>
                 
                 <div className="mb-6">
                   <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
-                    Quantity
+                    Cantidad
                   </label>
                   <select
                     id="quantity"
@@ -235,7 +244,7 @@ const ProductDetailPage: React.FC = () => {
                     onChange={handleQuantityChange}
                     className="block w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   >
-                    {[...Array(10)].map((_, i) => (
+                    {[...Array(Math.min(10, product.stock))].map((_, i) => (
                       <option key={i} value={i + 1}>
                         {i + 1}
                       </option>
@@ -250,7 +259,7 @@ const ProductDetailPage: React.FC = () => {
                     disabled={product.stock <= 0}
                   >
                     <ShoppingCart className="mr-2" size={20} />
-                    Add to Cart
+                    añadir al carrito
                   </button>
                   <button
                     className="p-3 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
@@ -266,42 +275,30 @@ const ProductDetailPage: React.FC = () => {
                   </button>
                 </div>
               </div>
-              
-              <div className="border-t border-gray-200 pt-6">
-                <div className="flex items-center mb-4">
-                  <img
-                    src={`https://i.pravatar.cc/150?img=${parseInt(product.seller.id)}`}
-                    alt={product.seller.name}
-                    className="w-10 h-10 rounded-full mr-3"
-                  />
-                  <div>
-                    <p className="font-medium text-gray-800">Sold by: {product.seller.name}</p>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <div className="flex items-center text-yellow-400">
-                        <Star size={14} fill="currentColor" />
-                        <span className="ml-1">{product.seller.rating}</span>
-                      </div>
-                    </div>
-                  </div>
+
+              {/* Seller Info */}
+              {product.seller && (
+                <div className="border-t border-gray-200 pt-4 text-sm text-gray-600">
+                  <p>Vendido por: <strong>{product.seller.name}</strong></p>
+                  <a
+                    href={`/seller/${product.seller.id}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Ver perfil de vendedor
+                  </a>
                 </div>
-              </div>
+              )}
             </div>
           </div>
-          
-          {/* Product Description */}
-          <div className="border-t border-gray-200 p-6">
-            <h2 className="text-lg font-semibold mb-4">Product Description</h2>
-            <p className="text-gray-700 whitespace-pre-line">{product.description}</p>
-          </div>
         </div>
-        
+
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold mb-6">You Might Also Like</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Productos relacionados</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+              {relatedProducts.map((related) => (
+                <ProductCard key={related.id} product={related} />
               ))}
             </div>
           </div>
@@ -312,3 +309,4 @@ const ProductDetailPage: React.FC = () => {
 };
 
 export default ProductDetailPage;
+
