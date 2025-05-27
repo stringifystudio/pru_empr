@@ -14,7 +14,7 @@ const Footer: React.FC = () => {
               <span>MercadoApp</span>
             </Link>
             <p className="text-gray-300 mb-4">
-              Your one-stop shop for all your shopping needs. Find the best products at the best prices.
+              Tu tienda integral para todas tus compras. Encuentra los mejores productos a los mejores precios.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-white hover:text-blue-400 transition-colors">
@@ -34,31 +34,31 @@ const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-lg font-semibold mb-4">Enlaces rápidos</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/" className="text-gray-300 hover:text-white transition-colors">
-                  Home
+                  Inicio
                 </Link>
               </li>
               <li>
                 <Link to="/products" className="text-gray-300 hover:text-white transition-colors">
-                  Products
+                  Productos
                 </Link>
               </li>
               <li>
                 <Link to="/categories" className="text-gray-300 hover:text-white transition-colors">
-                  Categories
+                  Categorias
                 </Link>
               </li>
               <li>
                 <Link to="/deals" className="text-gray-300 hover:text-white transition-colors">
-                  Special Deals
+                  Ofertas especiales
                 </Link>
               </li>
               <li>
                 <Link to="/sell" className="text-gray-300 hover:text-white transition-colors">
-                  Sell with Us
+                  Vender con nosotros
                 </Link>
               </li>
             </ul>
@@ -66,11 +66,11 @@ const Footer: React.FC = () => {
 
           {/* Customer Service */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Customer Service</h3>
+            <h3 className="text-lg font-semibold mb-4">Servicio al cliente</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/contact" className="text-gray-300 hover:text-white transition-colors">
-                  Contact Us
+                  Contactanos
                 </Link>
               </li>
               <li>
@@ -80,17 +80,17 @@ const Footer: React.FC = () => {
               </li>
               <li>
                 <Link to="/shipping" className="text-gray-300 hover:text-white transition-colors">
-                  Shipping Information
+                  Información de envío
                 </Link>
               </li>
               <li>
                 <Link to="/returns" className="text-gray-300 hover:text-white transition-colors">
-                  Returns Policy
+                  Política de devoluciones
                 </Link>
               </li>
               <li>
                 <Link to="/terms" className="text-gray-300 hover:text-white transition-colors">
-                  Terms & Conditions
+                  Términos y condiciones
                 </Link>
               </li>
             </ul>
@@ -98,7 +98,7 @@ const Footer: React.FC = () => {
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
+            <h3 className="text-lg font-semibold mb-4">Contactanos</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
                 <MapPin size={18} className="mr-2 mt-1 flex-shrink-0" />
@@ -121,17 +121,17 @@ const Footer: React.FC = () => {
         <div className="border-t border-gray-700 mt-8 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm mb-4 md:mb-0">
-              &copy; {new Date().getFullYear()} MercadoApp. All rights reserved.
+              &copy; {new Date().getFullYear()} MercadoApp. Todos los derechos reservados..
             </p>
             <div className="flex space-x-4">
               <Link to="/privacy" className="text-gray-400 text-sm hover:text-white transition-colors">
-                Privacy Policy
+                Política de privacidad
               </Link>
               <Link to="/terms" className="text-gray-400 text-sm hover:text-white transition-colors">
-                Terms of Service
+                Términos de servicio
               </Link>
               <Link to="/cookies" className="text-gray-400 text-sm hover:text-white transition-colors">
-                Cookie Policy
+                Política de cookies
               </Link>
             </div>
           </div>
