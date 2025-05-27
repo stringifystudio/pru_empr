@@ -66,10 +66,10 @@ const UpdatePasswordPage: React.FC = () => {
           <h1 className="ml-2 text-2xl font-bold text-blue-600">MercadoApp</h1>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Update your password
+          Actualiza tu contraseña
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Please enter your new password below
+          Por favor ingrese su nueva contraseña a continuación
         </p>
       </div>
 
@@ -88,7 +88,7 @@ const UpdatePasswordPage: React.FC = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
-                New Password
+                Nueva contraseña
               </label>
               <div className="mt-1">
                 <input
@@ -103,20 +103,20 @@ const UpdatePasswordPage: React.FC = () => {
                 />
               </div>
               <p className="mt-2 text-sm text-gray-500">
-                Password must contain at least:
+                La contraseña debe contener al menos:
                 <ul className="list-disc list-inside mt-1">
-                  <li>8 characters</li>
-                  <li>One uppercase letter</li>
-                  <li>One lowercase letter</li>
-                  <li>One number</li>
-                  <li>One special character (!@#$%^&*)</li>
+                  <li>8 caracteres</li>
+                  <li>Una letra mayúscula</li>
+                  <li>Una letra minúscula</li>
+                  <li>Un numero</li>
+                  <li>Un caracter especial (!@#$%^&*)</li>
                 </ul>
               </p>
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm New Password
+                Confirmar nueva contraseña
               </label>
               <div className="mt-1">
                 <input
@@ -144,12 +144,12 @@ const UpdatePasswordPage: React.FC = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Updating...
+                    Actualizando...
                   </span>
                 ) : (
                   <span className="flex items-center">
                     <Lock size={16} className="mr-2" />
-                    Update Password
+                    Actualizar contraseña
                   </span>
                 )}
               </button>
