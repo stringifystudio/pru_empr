@@ -48,12 +48,12 @@ const OrdersPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Please log in to view your orders</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Por favor, inicie sesión para ver sus pedidos</h2>
           <Link
             to="/login"
             className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
           >
-            Log In
+            Acceso
           </Link>
         </div>
       </div>
@@ -76,21 +76,31 @@ const OrdersPage: React.FC = () => {
     );
   }
 
+
+  function formatPrice(value) {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 2
+    }).format(value || 0);
+}
+
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
-        <h1 className="text-2xl font-bold mb-8">Your Orders</h1>
+        <h1 className="text-2xl font-bold mb-8">Tus pedidos</h1>
 
         {orders.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
             <Package size={48} className="mx-auto mb-4 text-gray-400" />
-            <h2 className="text-xl font-semibold mb-2">No orders yet</h2>
-            <p className="text-gray-500 mb-6">Looks like you haven't placed any orders yet.</p>
+            <h2 className="text-xl font-semibold mb-2">Aún no hay pedidos</h2>
+            <p className="text-gray-500 mb-6">Parece que aún no has realizado ningún pedido.</p>
             <Link
               to="/"
               className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
             >
-              Start Shopping
+              Empezar a comprar
             </Link>
           </div>
         ) : (
@@ -100,17 +110,17 @@ const OrdersPage: React.FC = () => {
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <p className="text-sm text-gray-500">Order placed</p>
+                      <p className="text-sm text-gray-500">Pedido realizado</p>
                       <p className="font-medium">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Total</p>
-                      <p className="font-medium">${order.total.toFixed(2)}</p>
+                      <p className="font-medium">{formatPrice(order.total)}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Order ID</p>
+                      <p className="text-sm text-gray-500">ID de pedido</p>
                       <p className="font-medium">{order.id}</p>
                     </div>
                     <div className="flex items-center">
@@ -132,7 +142,7 @@ const OrdersPage: React.FC = () => {
                         <div className="ml-4 flex-1">
                           <h3 className="font-medium">{item.product?.title}</h3>
                           <p className="text-sm text-gray-500">
-                            Quantity: {item.quantity} × ${item.price.toFixed(2)}
+                            Cantidad: {item.quantity} × {formatPrice(item.price)}
                           </p>
                         </div>
                         <Link
@@ -149,7 +159,7 @@ const OrdersPage: React.FC = () => {
                 <div className="p-4 bg-gray-50">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="text-sm text-gray-500">Shipping Address</p>
+                      <p className="text-sm text-gray-500">Dirección de envío</p>
                       <p className="text-sm">
                         {order.shipping_address.fullName}, {order.shipping_address.address},{' '}
                         {order.shipping_address.city}, {order.shipping_address.state}{' '}
@@ -160,7 +170,7 @@ const OrdersPage: React.FC = () => {
                       to={`/order/${order.id}`}
                       className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                     >
-                      View Order Details
+                      Ver detalles del pedido
                     </Link>
                   </div>
                 </div>
