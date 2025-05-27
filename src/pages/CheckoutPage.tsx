@@ -71,34 +71,42 @@ const CheckoutPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Tu carrito está vacío</h2>
           <button
             onClick={() => navigate('/')}
             className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
           >
-            Continue Shopping
+            Continuar comprando
           </button>
         </div>
       </div>
     );
   }
 
+
+  function formatPrice(value) {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 2
+    }).format(value || 0);
+}
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold mb-8">Checkout</h1>
+          <h1 className="text-2xl font-bold mb-8">Verificar</h1>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Shipping Form */}
             <div className="md:col-span-2">
               <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <h2 className="text-lg font-semibold mb-4">Shipping Information</h2>
+                <h2 className="text-lg font-semibold mb-4">Información de envío</h2>
                 <form onSubmit={handleSubmit}>
                   <div className="space-y-4">
                     <div>
                       <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-                        Full Name
+                        Nombre completo
                       </label>
                       <input
                         type="text"
@@ -113,7 +121,7 @@ const CheckoutPage: React.FC = () => {
 
                     <div>
                       <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-                        Street Address
+                        Dirección
                       </label>
                       <input
                         type="text"
@@ -129,7 +137,7 @@ const CheckoutPage: React.FC = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-                          City
+                          Ciudad
                         </label>
                         <input
                           type="text"
@@ -144,7 +152,7 @@ const CheckoutPage: React.FC = () => {
 
                       <div>
                         <label htmlFor="state" className="block text-sm font-medium text-gray-700">
-                          State
+                          Barrio
                         </label>
                         <input
                           type="text"
@@ -161,7 +169,7 @@ const CheckoutPage: React.FC = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">
-                          ZIP Code
+                          Codigo postal
                         </label>
                         <input
                           type="text"
@@ -176,7 +184,7 @@ const CheckoutPage: React.FC = () => {
 
                       <div>
                         <label htmlFor="country" className="block text-sm font-medium text-gray-700">
-                          Country
+                          Pais
                         </label>
                         <input
                           type="text"
@@ -192,7 +200,7 @@ const CheckoutPage: React.FC = () => {
 
                     <div>
                       <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                        Phone Number
+                        Número de teléfono
                       </label>
                       <input
                         type="tel"
@@ -207,11 +215,11 @@ const CheckoutPage: React.FC = () => {
                   </div>
 
                   <div className="mt-8">
-                    <h2 className="text-lg font-semibold mb-4">Payment Information</h2>
+                    <h2 className="text-lg font-semibold mb-4">Información de pago</h2>
                     <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                       <div className="flex items-center text-blue-700">
                         <CreditCard className="mr-2" size={20} />
-                        <span>Payment will be handled securely by Stripe</span>
+                        <span>El pago se gestionará de forma segura mediante Stripe.</span>
                       </div>
                     </div>
                   </div>
@@ -232,32 +240,32 @@ const CheckoutPage: React.FC = () => {
             {/* Order Summary */}
             <div className="md:col-span-1">
               <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
-                <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+                <h2 className="text-lg font-semibold mb-4">Resumen del pedido</h2>
 
                 <div className="space-y-4">
                   {items.map((item) => (
                     <div key={item.product.id} className="flex justify-between text-sm">
                       <span>{item.product.title} × {item.quantity}</span>
-                      <span>${(item.product.price * item.quantity).toFixed(2)}</span>
+                      <span>{formatPrice(item.product.price * item.quantity)}</span>
                     </div>
                   ))}
 
                   <div className="border-t pt-4">
                     <div className="flex justify-between text-sm">
                       <span>Subtotal</span>
-                      <span>${total.toFixed(2)}</span>
+                      <span>{formatPrice(total)}</span>
                     </div>
                     <div className="flex justify-between text-sm mt-2">
-                      <span>Shipping</span>
-                      <span>{shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`}</span>
+                      <span>Envío</span>
+                      <span>{shippingCost === 0 ? 'Free' : `${formatPrice(shippingCost)}`}</span>
                     </div>
                     <div className="flex justify-between text-sm mt-2">
-                      <span>Tax</span>
-                      <span>${tax.toFixed(2)}</span>
+                      <span>Impuesto</span>
+                      <span>{formatPrice(tax)}</span>
                     </div>
                     <div className="flex justify-between font-semibold text-lg mt-4">
                       <span>Total</span>
-                      <span>${orderTotal.toFixed(2)}</span>
+                      <span>{formatPrice(orderTotal)}</span>
                     </div>
                   </div>
                 </div>
@@ -265,11 +273,11 @@ const CheckoutPage: React.FC = () => {
                 <div className="mt-6 space-y-4">
                   <div className="flex items-center text-sm text-gray-600">
                     <Truck className="mr-2" size={18} />
-                    <span>Free shipping on orders over $50</span>
+                    <span>Envío gratuito en pedidos superiores a $50</span>
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <ShieldCheck className="mr-2" size={18} />
-                    <span>Secure checkout powered by Stripe</span>
+                    <span>Caja segura impulsada por Stripe</span>
                   </div>
                 </div>
               </div>
