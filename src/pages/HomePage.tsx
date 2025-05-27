@@ -29,16 +29,16 @@ const HomePage: React.FC = () => {
         <div className="my-12 bg-blue-600 text-white rounded-xl overflow-hidden">
           <div className="flex flex-col md:flex-row items-center">
             <div className="p-8 md:p-12 flex-1">
-              <h2 className="text-3xl font-bold mb-4">Become a Seller Today</h2>
+              <h2 className="text-3xl font-bold mb-4">Conviértase en vendedor hoy</h2>
               <p className="mb-6 text-blue-100">
-                Join thousands of sellers who are already growing their business with MercadoApp.
-                Get access to millions of customers and start selling in minutes.
+Únete a miles de vendedores que ya están expandiendo su negocio con MercadoApp.
+Accede a millones de clientes y empieza a vender en minutos.
               </p>
               <a
                 href="/sell"
                 className="inline-block bg-white text-blue-600 font-medium py-2 px-6 rounded-md hover:bg-blue-50 transition-colors duration-300"
               >
-                Start Selling
+                Empezar a vender
               </a>
             </div>
             <div className="flex-1 h-64 md:h-auto relative">
