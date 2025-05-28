@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Shirt, Gem, Watch, ShoppingBag, BadgePercent, Footprints } from 'lucide-react';
+import {
+  Shirt, Gem, Watch, ShoppingBag, BadgePercent, Footprints,
+} from 'lucide-react';
 import { Category } from '../../types';
+import { getCategories } from '../../lib/categories'; // RUTA CORRECTA
 
-interface ListaCategoriasProps {
-  categories: Category[];
-}
+const CategoryList: React.FC = () => {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const ListaCategorias: React.FC<ListaCategoriasProps> = ({ categories }) => {
   const obtenerIconoPorCategoria = (iconName: string) => {
     switch (iconName) {
       case 'shirt':
@@ -26,6 +28,23 @@ const ListaCategorias: React.FC<ListaCategoriasProps> = ({ categories }) => {
         return <Shirt size={24} className="mb-2" />;
     }
   };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error cargando categorías:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  if (loading) return <p className="text-center">Cargando categorías...</p>;
 
   return (
     <div className="py-8">
@@ -48,4 +67,4 @@ const ListaCategorias: React.FC<ListaCategoriasProps> = ({ categories }) => {
   );
 };
 
-export default ListaCategorias;
+export default CategoryList;
