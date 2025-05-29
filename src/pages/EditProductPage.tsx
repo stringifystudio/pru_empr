@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit2, ChevronDown, ChevronUp, Loader } from 'lucide-react';
+import { Edit2, ChevronDown, ChevronUp, Loader, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Product } from '../types';
@@ -86,7 +86,7 @@ const EditProductPage: React.FC = () => {
         return { ...prev, [productId]: 0 };
       }
       if (currentMainIndex > index) {
-        return { ...prev, [productId]: currentMainIndex - 1 };
+        return prev;
       }
       return prev;
     });
@@ -118,7 +118,7 @@ const EditProductPage: React.FC = () => {
           return { ...prev, [productId]: 0 };
         }
         if (currentMainIndex > index) {
-          return { ...prev, [productId]: currentMainIndex - 1 };
+          return prev;
         }
         return prev;
       });
@@ -199,6 +199,40 @@ const EditProductPage: React.FC = () => {
     }
   };
 
+  const handleDeleteProduct = async (productId: string) => {
+    const confirmDelete = window.confirm('¿Estás seguro de que deseas eliminar este producto?');
+    if (!confirmDelete) return;
+
+    try {
+      const product = products.find(p => p.id === productId);
+      if (product) {
+        // Eliminar imágenes del almacenamiento
+        const imagesToDelete = product.images || [];
+        for (const image of imagesToDelete) {
+          const imagePath = image.split('/').pop(); // Obtener el nombre del archivo
+          const { error: deleteError } = await supabase.storage
+            .from('products')
+            .remove([`products/${imagePath}`]);
+
+          if (deleteError) throw deleteError;
+        }
+      }
+
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      toast.success('Producto eliminado correctamente');
+      setProducts(prev => prev.filter(p => p.id !== productId));
+    } catch (error: any) {
+      toast.error('No se pudo eliminar el producto');
+      console.error(error.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -209,12 +243,11 @@ const EditProductPage: React.FC = () => {
 
   function formatPrice(value) {
     return new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
-        minimumFractionDigits: 2
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 2
     }).format(value || 0);
-}
-
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 py-12">
@@ -246,15 +279,24 @@ const EditProductPage: React.FC = () => {
                     <p className="text-blue-600 text-sm font-medium">{formatPrice(price)}</p>
                   </div>
                 </div>
-                <button
-                  className="text-blue-600 hover:text-blue-800 transition"
-                  onClick={() =>
-                    setEditingProduct(editingProduct === product.id ? null : product.id)
-                  }
-                  aria-label={editingProduct === product.id ? 'Cerrar edición' : 'Editar producto'}
-                >
-                  {editingProduct === product.id ? <ChevronUp /> : <Edit2 />}
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    className="text-blue-600 hover:text-blue-800 transition"
+                    onClick={() =>
+                      setEditingProduct(editingProduct === product.id ? null : product.id)
+                    }
+                    aria-label={editingProduct === product.id ? 'Cerrar edición' : 'Editar producto'}
+                  >
+                    {editingProduct === product.id ? <ChevronUp /> : <Edit2 />}
+                  </button>
+                  <button
+                    className="text-red-600 hover:text-red-800 transition"
+                    onClick={() => handleDeleteProduct(product.id)}
+                    aria-label="Eliminar producto"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
               {editingProduct === product.id && (
@@ -324,49 +366,48 @@ const EditProductPage: React.FC = () => {
 
                     <div className="flex flex-wrap mt-4 gap-4 max-w-full overflow-x-auto">
                       {/* Existing images from product */}
-{product.images?.map((img, idx) => (
-  <div
-    key={`existing-${idx}`}
-    className={`relative border rounded-lg overflow-hidden cursor-pointer
-      ${
-        mainImageIndex[product.id] === idx
-          ? 'border-blue-500 ring-2 ring-blue-400'
-          : 'border-gray-300'
-      }
-    `}
-    onClick={() =>
-      setMainImageIndex(prev => ({ ...prev, [product.id]: idx }))
-    }
-    title={
-      mainImageIndex[product.id] === idx
-        ? 'Imagen principal'
-        : 'Seleccionar como imagen principal'
-    }
-  >
-    <img
-      src={img}
-      alt={`Imagen ${idx + 1}`}
-      className="w-20 h-20 object-cover rounded-lg"
-    />
-    {mainImageIndex[product.id] === idx && (
-      <span className="absolute top-1 left-1 bg-blue-600 text-white text-xs font-semibold px-1 rounded">
-        main
-      </span>
-    )}
-    <button
-      onClick={e => {
-        e.stopPropagation();
-        handleRemoveExistingImage(product.id, idx);
-      }}
-      className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-700"
-      aria-label="Eliminar imagen"
-      type="button"
-    >
-      ×
-    </button>
-  </div>
-))}
-
+                      {product.images?.map((img, idx) => (
+                        <div
+                          key={`existing-${idx}`}
+                          className={`relative border rounded-lg overflow-hidden cursor-pointer
+                            ${
+                              mainImageIndex[product.id] === idx
+                                ? 'border-blue-500 ring-2 ring-blue-400'
+                                : 'border-gray-300'
+                            }
+                          `}
+                          onClick={() =>
+                            setMainImageIndex(prev => ({ ...prev, [product.id]: idx }))
+                          }
+                          title={
+                            mainImageIndex[product.id] === idx
+                              ? 'Imagen principal'
+                              : 'Seleccionar como imagen principal'
+                          }
+                        >
+                          <img
+                            src={img}
+                            alt={`Imagen ${idx + 1}`}
+                            className="w-20 h-20 object-cover rounded-lg"
+                          />
+                          {mainImageIndex[product.id] === idx && (
+                            <span className="absolute top-1 left-1 bg-blue-600 text-white text-xs font-semibold px-1 rounded">
+                              principal
+                            </span>
+                          )}
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              handleRemoveExistingImage(product.id, idx);
+                            }}
+                            className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-700"
+                            aria-label="Eliminar imagen"
+                            type="button"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
 
                       {/* New uploaded images previews */}
                       {(imagePreviews[product.id] || []).map((preview, idx) => (
