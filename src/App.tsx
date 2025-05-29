@@ -15,6 +15,7 @@ import UpdatePasswordPage from './pages/UpdatePasswordPage';
 import ProfilePage from './pages/ProfilePage';
 import CreateProductPage from './pages/CreateProductPage';
 import EditProductPage from './pages/EditProductPage';
+import CategoryPage from './pages/CategoryPage';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
                 <Route path="/update-password" element={<UpdatePasswordPage />} />
                 <Route path="/admin/create-product" element={<CreateProductPage />} />
                 <Route path="/admin/edit-product" element={<EditProductPage />} />
+                <Route path="/category/:categoryId" element={<CategoryPage />} />
               </Routes>
             </main>
             <Footer />
