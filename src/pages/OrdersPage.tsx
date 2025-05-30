@@ -26,8 +26,9 @@ const OrdersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-  const [comments, setComments] = useState<{ [key: string]: any[] }>({}); // Almacena comentarios por ID de pedido
-  const [loadingComments, setLoadingComments] = useState<{ [key: string]: boolean }>({}); // Estado de carga de comentarios
+  const [comments, setComments] = useState<{ [key: string]: any[] | null }>({});
+  const [loadingComments, setLoadingComments] = useState<{ [key: string]: boolean }>({});
+  const [visibleComments, setVisibleComments] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -46,16 +47,25 @@ const OrdersPage: React.FC = () => {
   }, []);
 
   const toggleComments = async (orderId: string) => {
-    if (!comments[orderId]) {
-      setLoadingComments((prev) => ({ ...prev, [orderId]: true }));
-      try {
-        const data = await getOrderComments(orderId);
-        setComments((prev) => ({ ...prev, [orderId]: data }));
-      } catch (error) {
-        console.error('Error fetching comments:', error);
-      } finally {
-        setLoadingComments((prev) => ({ ...prev, [orderId]: false }));
+    const currentlyVisible = visibleComments[orderId];
+    if (currentlyVisible) {
+      // Ocultar comentarios pero no limpiar datos
+      setVisibleComments(prev => ({ ...prev, [orderId]: false }));
+    } else {
+      // Mostrar comentarios, si no están cargados, cargarlos
+      if (comments[orderId] === undefined) {
+        setLoadingComments(prev => ({ ...prev, [orderId]: true }));
+        try {
+          const data = await getOrderComments(orderId);
+          setComments(prev => ({ ...prev, [orderId]: data }));
+        } catch (error) {
+          console.error('Error fetching comments:', error);
+          setComments(prev => ({ ...prev, [orderId]: [] })); // prevenir bloqueo de UI
+        } finally {
+          setLoadingComments(prev => ({ ...prev, [orderId]: false }));
+        }
       }
+      setVisibleComments(prev => ({ ...prev, [orderId]: true }));
     }
   };
 
@@ -168,31 +178,30 @@ const OrdersPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
-<div className="p-4 bg-gray-50">
-  <div className="flex justify-between items-center">
-    <div>
-      <p className="text-sm text-gray-500">Dirección de envío</p>
-      <p className="text-sm">
-        {order.shipping_address.fullName}, {order.shipping_address.address}, {order.shipping_address.city}, {order.shipping_address.state} {order.shipping_address.zipCode}
-      </p>
-    </div>
-    <Link
-      to={`/order/${order.id}`}
-      className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-    >
-      Ver detalles del pedido
-    </Link>
-    <button
-      onClick={() => toggleComments(order.id)} // Asegúrate de que esta función esté definida
-      className="text-sm text-gray-600 hover:underline"
-    >
-      {comments[order.id] ? 'Ocultar comentarios' : 'Ver comentarios'}
-    </button>
-  </div>
-</div>
+                <div className="p-4 bg-gray-50">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-sm text-gray-500">Dirección de envío</p>
+                      <p className="text-sm">
+                        {order.shipping_address.fullName}, {order.shipping_address.address}, {order.shipping_address.city}, {order.shipping_address.state} {order.shipping_address.zipCode}
+                      </p>
+                    </div>
+                    <Link
+                      to={`/order/${order.id}`}
+                      className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                    >
+                      Ver detalles del pedido
+                    </Link>
+                    <button
+                      onClick={() => toggleComments(order.id)}
+                      className="text-sm text-gray-600 hover:underline"
+                    >
+                      {visibleComments[order.id] ? 'Ocultar comentarios' : 'Ver comentarios'}
+                    </button>
+                  </div>
+                </div>
 
-
-                {comments[order.id] && (
+                {visibleComments[order.id] && comments[order.id] && (
                   <div className="p-4 bg-white border-t border-gray-200">
                     {loadingComments[order.id] ? (
                       <p className="text-sm text-gray-500">Cargando comentarios...</p>
@@ -204,7 +213,7 @@ const OrdersPage: React.FC = () => {
                           <li key={comment.id} className="text-sm text-gray-700 border p-2 rounded">
                             <p>{comment.comment}</p>
                             <p className="text-xs text-gray-400">
-                              {new Date(comment.created_at).toLocaleString()}
+                              {new Date(comment.created_at).toLocaleString()} - Estado: {comment.status}
                             </p>
                           </li>
                         ))}
@@ -222,3 +231,4 @@ const OrdersPage: React.FC = () => {
 };
 
 export default OrdersPage;
+
