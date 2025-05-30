@@ -26,6 +26,7 @@ const AdminOrdersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [comments, setComments] = useState<{ [orderId: string]: string }>({});
+  const [statuses, setStatuses] = useState<{ [orderId: string]: string }>({}); // Nuevo estado para almacenar el estado seleccionado
   const { user, userRole } = useAuth(); // Obtén el usuario y su rol
 
   useEffect(() => {
@@ -78,10 +79,11 @@ const AdminOrdersPage: React.FC = () => {
     }).format(value || 0);
   }
 
-  const handleStatusChange = async (orderId: string, newStatus: string) => {
+  const handleStatusChange = (orderId: string, newStatus: string) => {
+    setStatuses((prev) => ({ ...prev, [orderId]: newStatus })); // Actualiza el estado seleccionado
     console.log('Updating order ID:', orderId, 'to status:', newStatus);
     try {
-      await updateOrderStatus(orderId, newStatus);
+      updateOrderStatus(orderId, newStatus);
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order.id === orderId ? { ...order, status: newStatus } : order
@@ -99,12 +101,13 @@ const AdminOrdersPage: React.FC = () => {
 
   const handleCommentSubmit = async (orderId: string) => {
     const comment = comments[orderId];
+    const newStatus = statuses[orderId] || ''; // Obtiene el estado seleccionado
     if (!comment || comment.trim() === '') {
       alert('El comentario no puede estar vacío.');
       return;
     }
     try {
-      await createOrderComment(orderId, comment, user?.id);
+      await createOrderComment(orderId, comment, user?.id, newStatus); // Pasa el nuevo estado
       alert('Comentario guardado exitosamente.');
       setComments((prev) => ({ ...prev, [orderId]: '' })); // Limpia el textarea
     } catch (err) {
@@ -190,7 +193,7 @@ const AdminOrdersPage: React.FC = () => {
                 <div className="p-4 bg-gray-100">
                   <h4 className="font-medium mb-2">Actualizar estado del pedido</h4>
                   <select
-                    value={order.status}
+                    value={statuses[order.id] || order.status} // Muestra el estado actual o el seleccionado
                     onChange={(e) => handleStatusChange(order.id, e.target.value)}
                     className="border border-gray-300 rounded-md p-2"
                   >
