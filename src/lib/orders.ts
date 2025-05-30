@@ -135,7 +135,7 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
   return data;
 }
 
-export async function createOrderComment(orderId: string, comment: string, adminUserId: string) {
+export async function createOrderComment(orderId: string, comment: string, adminUserId: string, newStatus: string) {
   const { data, error } = await supabase
     .from('order_comments')
     .insert([
@@ -143,6 +143,7 @@ export async function createOrderComment(orderId: string, comment: string, admin
         order_id: orderId,
         comment,
         admin_user_id: adminUserId,
+        status: newStatus,
       },
     ]);
 
