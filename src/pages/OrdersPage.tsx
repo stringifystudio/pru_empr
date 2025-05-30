@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, ChevronRight, Truck, CheckCircle, XCircle, Clock } from 'lucide-react';
-import { Order } from '../lib/orders';
-import { getOrders } from '../lib/orders';
+import { Order, getOrders, getOrderComments } from '../lib/orders';
 import { useAuth } from '../context/AuthContext';
 
 const OrderStatusIcon = ({ status }: { status: Order['status'] }) => {
@@ -27,6 +26,8 @@ const OrdersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const [comments, setComments] = useState<{ [key: string]: any[] }>({}); // Almacena comentarios por ID de pedido
+  const [loadingComments, setLoadingComments] = useState<{ [key: string]: boolean }>({}); // Estado de carga de comentarios
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -43,6 +44,28 @@ const OrdersPage: React.FC = () => {
 
     loadOrders();
   }, []);
+
+  const toggleComments = async (orderId: string) => {
+    if (!comments[orderId]) {
+      setLoadingComments((prev) => ({ ...prev, [orderId]: true }));
+      try {
+        const data = await getOrderComments(orderId);
+        setComments((prev) => ({ ...prev, [orderId]: data }));
+      } catch (error) {
+        console.error('Error fetching comments:', error);
+      } finally {
+        setLoadingComments((prev) => ({ ...prev, [orderId]: false }));
+      }
+    }
+  };
+
+  function formatPrice(value: number) {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 2
+    }).format(value || 0);
+  }
 
   if (!user) {
     return (
@@ -76,16 +99,6 @@ const OrdersPage: React.FC = () => {
     );
   }
 
-
-  function formatPrice(value) {
-    return new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
-        minimumFractionDigits: 2
-    }).format(value || 0);
-}
-
-
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
@@ -112,7 +125,7 @@ const OrdersPage: React.FC = () => {
                     <div>
                       <p className="text-sm text-gray-500">Pedido realizado</p>
                       <p className="font-medium">
-                        {new Date(order.createdAt).toLocaleDateString()}
+                        {new Date(order.created_at).toLocaleDateString()}
                       </p>
                     </div>
                     <div>
@@ -155,25 +168,50 @@ const OrdersPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
+<div className="p-4 bg-gray-50">
+  <div className="flex justify-between items-center">
+    <div>
+      <p className="text-sm text-gray-500">Dirección de envío</p>
+      <p className="text-sm">
+        {order.shipping_address.fullName}, {order.shipping_address.address}, {order.shipping_address.city}, {order.shipping_address.state} {order.shipping_address.zipCode}
+      </p>
+    </div>
+    <Link
+      to={`/order/${order.id}`}
+      className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+    >
+      Ver detalles del pedido
+    </Link>
+    <button
+      onClick={() => toggleComments(order.id)} // Asegúrate de que esta función esté definida
+      className="text-sm text-gray-600 hover:underline"
+    >
+      {comments[order.id] ? 'Ocultar comentarios' : 'Ver comentarios'}
+    </button>
+  </div>
+</div>
 
-                <div className="p-4 bg-gray-50">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-sm text-gray-500">Dirección de envío</p>
-                      <p className="text-sm">
-                        {order.shipping_address.fullName}, {order.shipping_address.address},{' '}
-                        {order.shipping_address.city}, {order.shipping_address.state}{' '}
-                        {order.shipping_address.zipCode}
-                      </p>
-                    </div>
-                    <Link
-                      to={`/order/${order.id}`}
-                      className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                    >
-                      Ver detalles del pedido
-                    </Link>
+
+                {comments[order.id] && (
+                  <div className="p-4 bg-white border-t border-gray-200">
+                    {loadingComments[order.id] ? (
+                      <p className="text-sm text-gray-500">Cargando comentarios...</p>
+                    ) : comments[order.id].length === 0 ? (
+                      <p className="text-sm text-gray-500">No hay comentarios para este pedido.</p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {comments[order.id].map((comment) => (
+                          <li key={comment.id} className="text-sm text-gray-700 border p-2 rounded">
+                            <p>{comment.comment}</p>
+                            <p className="text-xs text-gray-400">
+                              {new Date(comment.created_at).toLocaleString()}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
-                </div>
+                )}
               </div>
             ))}
           </div>
