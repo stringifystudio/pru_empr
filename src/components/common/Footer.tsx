@@ -121,7 +121,7 @@ const Footer: React.FC = () => {
         <div className="border-t border-gray-700 mt-8 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm mb-4 md:mb-0">
-              &copy; {new Date().getFullYear()} MercadoApp. Todos los derechos reservados..
+              &copy; {new Date().getFullYear()} MercadoApp. Todos los derechos reservados.
             </p>
             <div className="flex space-x-4">
               <Link to="/privacy" className="text-gray-400 text-sm hover:text-white transition-colors">
@@ -135,6 +135,13 @@ const Footer: React.FC = () => {
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* Footer pequeño */}
+        <div className="mt-4 text-center">
+          <p className="text-gray-400 text-sm">
+           &copy; Desarrollado por Stringify Sudio
+          </p>
         </div>
       </div>
     </footer>
