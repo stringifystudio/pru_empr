@@ -79,7 +79,7 @@ const AdminOrdersPage: React.FC = () => {
   }
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
-    console.log('Updating order ID:', orderId, 'to status:', newStatus); // Log para verificar valores
+    console.log('Updating order ID:', orderId, 'to status:', newStatus);
     try {
       await updateOrderStatus(orderId, newStatus);
       setOrders((prevOrders) =>
@@ -104,7 +104,7 @@ const AdminOrdersPage: React.FC = () => {
       return;
     }
     try {
-      await createOrderComment(orderId, comment, user?.id); // Pasa el ID del usuario administrador
+      await createOrderComment(orderId, comment, user?.id);
       alert('Comentario guardado exitosamente.');
       setComments((prev) => ({ ...prev, [orderId]: '' })); // Limpia el textarea
     } catch (err) {
@@ -127,8 +127,9 @@ const AdminOrdersPage: React.FC = () => {
         ) : (
           <div className="space-y-6">
             {orders.map((order) => (
-              <div key={order.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div key={order.id} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
                 <div className="p-6 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold mb-4">Detalles del Pedido</h2>
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="text-sm text-gray-500">Pedido realizado</p>
@@ -150,9 +151,10 @@ const AdminOrdersPage: React.FC = () => {
                     </div>
                   </div>
 
+                  <h3 className="text-lg font-semibold mb-2">Artículos</h3>
                   <div className="space-y-4">
                     {order.items.map((item) => (
-                      <div key={item.id} className="flex items-center">
+                      <div key={item.id} className="flex items-center border-b border-gray-300 pb-2 mb-2">
                         <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden">
                           <img
                             src={item.product?.thumbnail}
@@ -178,22 +180,10 @@ const AdminOrdersPage: React.FC = () => {
                 </div>
 
                 <div className="p-4 bg-gray-50">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-sm text-gray-500">Dirección de envío</p>
-                      <p className="text-sm">
-                        {order.shipping_address.fullName}, {order.shipping_address.address},{' '}
-                        {order.shipping_address.city}, {order.shipping_address.state}{' '}
-                        {order.shipping_address.zipCode}
-                      </p>
-                    </div>
-                    <Link
-                      to={`/admin/orders/${order.id}`}
-                      className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                    >
-                      Ver detalles del pedido
-                    </Link>
-                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Dirección de envío</h3>
+                  <p className="text-sm text-gray-500">
+                    {order.shipping_address.fullName}, {order.shipping_address.address}, {order.shipping_address.city}, {order.shipping_address.state} {order.shipping_address.zipCode}
+                  </p>
                 </div>
 
                 {/* Sección para cambiar el estado y dejar comentarios */}
