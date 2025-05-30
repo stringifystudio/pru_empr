@@ -184,7 +184,7 @@ const OrderDetailPage: React.FC = () => {
       if (error) throw error;
 
       toast.success('Pedido eliminado correctamente.');
-      navigate('/admin/orders');
+      navigate('/orders');
     } catch (error) {
       toast.error('Error eliminando el pedido.');
       console.error(error);
