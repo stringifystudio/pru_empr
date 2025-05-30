@@ -5,29 +5,28 @@ import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import ProductCard from '../components/products/ProductCard';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext'; // Importar el contexto de autenticación
-import toast from 'react-hot-toast'; // Importar la librería de notificaciones
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { addToCart } = useCart(); // Obtener la función para agregar al carrito
-  const { user, isAuthenticated } = useAuth(); // Obtener el usuario del contexto de autenticación
+  const { addToCart } = useCart();
+  const { user, isAuthenticated } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState('');
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]); // Para almacenar las reseñas
-  const [newReview, setNewReview] = useState({ rating: 5, comment: '' }); // Para el nuevo comentario
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         if (!id) return;
 
-        // Fetch main product by id
         const { data: productData, error: productError } = await supabase
           .from('products')
           .select('*')
@@ -41,13 +40,12 @@ const ProductDetailPage: React.FC = () => {
           return;
         }
 
-        // Normalize images field: if no images array, fallback to thumbnail
         const imagesArray = productData.images
-          ? Array.isArray(productData.images) 
-            ? productData.images 
-            : [productData.images] 
-          : productData.thumbnail 
-            ? [productData.thumbnail] 
+          ? Array.isArray(productData.images)
+            ? productData.images
+            : [productData.images]
+          : productData.thumbnail
+            ? [productData.thumbnail]
             : [];
 
         const formattedProduct: Product = {
@@ -59,7 +57,6 @@ const ProductDetailPage: React.FC = () => {
         setProduct(formattedProduct);
         setSelectedImage(formattedProduct.images[0] || '');
 
-        // Fetch related products only if category exists
         if (formattedProduct.category) {
           const { data: relatedData, error: relatedError } = await supabase
             .from('products')
@@ -73,7 +70,6 @@ const ProductDetailPage: React.FC = () => {
           }
         }
 
-        // Fetch reviews for the product
         const { data: reviewsData, error: reviewsError } = await supabase
           .from('reviews')
           .select('*')
@@ -93,17 +89,18 @@ const ProductDetailPage: React.FC = () => {
     fetchProduct();
   }, [id]);
 
-  // Calcular el rating promedio
   const averageRating = reviews.length > 0
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-    : 0; // Si no hay reseñas, el promedio es 0
+    : 0;
 
-  // Agregar al carrito con cantidad
   const handleAddToCart = () => {
     if (product && quantity > 0 && product.stock >= quantity) {
       for (let i = 0; i < quantity; i++) {
         addToCart(product);
       }
+      toast.success('Producto agregado al carrito');
+    } else {
+      toast.error('No hay suficiente stock disponible');
     }
   };
 
@@ -127,25 +124,30 @@ const ProductDetailPage: React.FC = () => {
     e.preventDefault();
     if (!newReview.comment || !isAuthenticated) {
       toast.error('Debes estar autenticado para enviar una reseña');
-      return; // Asegúrate de que el usuario esté autenticado
+      return;
     }
 
     try {
       const { error } = await supabase
         .from('reviews')
-        .insert([{ 
-          product_id: id, 
-          user_name: user?.user_metadata.full_name || 'Usuario Anónimo', // Obtener el nombre del usuario
-          user_photo: user?.user_metadata.avatar_url || '', // Obtener la foto del usuario
-          rating: newReview.rating, 
-          comment: newReview.comment 
+        .insert([{
+          product_id: id,
+          user_name: user?.user_metadata.full_name || 'Usuario Anónimo',
+          user_photo: user?.user_metadata.avatar_url || '',
+          rating: newReview.rating,
+          comment: newReview.comment
         }]);
 
       if (error) throw error;
 
-      // Actualizar la lista de reseñas
-      setReviews(prev => [...prev, { ...newReview, user_name: user?.user_metadata.full_name || 'Usuario Anónimo', user_photo: user?.user_metadata.avatar_url || '' }]);
-      setNewReview({ rating: 5, comment: '' }); // Resetear el formulario
+      setReviews(prev => [...prev, {
+        rating: newReview.rating,
+        comment: newReview.comment,
+        user_name: user?.user_metadata.full_name || 'Usuario Anónimo',
+        user_photo: user?.user_metadata.avatar_url || '',
+        id: Math.random().toString(36).substr(2, 9) // Unique key to avoid React warnings
+      }]);
+      setNewReview({ rating: 5, comment: '' });
       toast.success('Reseña enviada con éxito');
     } catch (error) {
       console.error('Error submitting review:', error);
@@ -153,11 +155,11 @@ const ProductDetailPage: React.FC = () => {
     }
   };
 
-  function formatPrice(value) {
+  function formatPrice(value: number) {
     return new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
-        minimumFractionDigits: 2
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 2
     }).format(value || 0);
   }
 
@@ -196,7 +198,6 @@ const ProductDetailPage: React.FC = () => {
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="container mx-auto px-4 py-8">
-        {/* Breadcrumb */}
         <div className="flex items-center text-sm text-gray-500 mb-6">
           <button onClick={handleGoBack} className="flex items-center hover:text-blue-600 transition-colors">
             <ArrowLeft size={16} className="mr-1" />
@@ -210,10 +211,8 @@ const ProductDetailPage: React.FC = () => {
           <span className="text-gray-700 font-medium truncate">{product.title}</span>
         </div>
 
-        {/* Product Details */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-10">
           <div className="grid grid-cols-1 md:grid-cols-2">
-            {/* Product Images */}
             <div className="p-6 border-r border-gray-200">
               <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
                 <img 
@@ -243,10 +242,9 @@ const ProductDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Product Info */}
             <div className="p-6">
               <h1 className="text-2xl font-bold text-gray-800 mb-2">{product.title}</h1>
-              
+
               <div className="flex items-center mb-4">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
@@ -265,7 +263,7 @@ const ProductDetailPage: React.FC = () => {
                   {product.stock > 0 ? `In Stock (${product.stock} available)` : 'Out of Stock'}
                 </span>
               </div>
-              
+
               <div className="mb-6">
                 {discountedPrice ? (
                   <div className="flex items-center">
@@ -279,13 +277,13 @@ const ProductDetailPage: React.FC = () => {
                   <span className="text-3xl font-bold text-gray-900">{formatPrice(product.price)}</span>
                 )}
               </div>
-              
+
               <div className="border-t border-gray-200 pt-6 mb-6">
                 <div className="flex items-center text-sm text-gray-600 mb-4">
                   <Truck className="mr-2 text-blue-600" size={18} />
                   <p>Envío gratuito en pedidos superiores a $50</p>
                 </div>
-                
+
                 <div className="mb-6">
                   <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
                     Cantidad
@@ -303,7 +301,7 @@ const ProductDetailPage: React.FC = () => {
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="flex space-x-4">
                   <button
                     onClick={handleAddToCart}
@@ -328,7 +326,6 @@ const ProductDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Seller Info */}
               {product.seller && (
                 <div className="border-t border-gray-200 pt-4 text-sm text-gray-600">
                   <p>Vendido por: <strong>{product.seller.name}</strong></p>
@@ -344,7 +341,6 @@ const ProductDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Reseñas */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-10">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Reseñas</h2>
           <form onSubmit={handleSubmitReview} className="mb-6">
@@ -395,7 +391,6 @@ const ProductDetailPage: React.FC = () => {
           )}
         </div>
 
-        {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Productos relacionados</h2>
@@ -412,3 +407,4 @@ const ProductDetailPage: React.FC = () => {
 };
 
 export default ProductDetailPage;
+
