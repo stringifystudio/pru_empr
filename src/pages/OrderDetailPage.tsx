@@ -32,8 +32,6 @@ interface Order {
   items: OrderItem[];
 }
 
-const statusOptions: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-
 const OrderStatusIcon = ({ status }: { status: OrderStatus }) => {
   const icons = {
     pending: <Clock className="text-yellow-500" />,
@@ -208,6 +206,8 @@ const OrderDetailPage: React.FC = () => {
     );
   }
 
+  const isEditable = order.status !== 'shipped' && order.status !== 'cancelled' && order.status !== 'delivered'; // Verifica si el pedido es editable
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 max-w-5xl mx-auto">
       <button 
@@ -243,7 +243,8 @@ const OrderDetailPage: React.FC = () => {
               value={editableShipping.fullName}
               onChange={handleChangeShipping}
               placeholder="Nombre completo"
-              className="mb-2 w-full border border-gray-300 rounded-md p-2"
+              className={`mb-2 w-full border border-gray-300 rounded-md p-2 ${!isEditable ? 'bg-gray-200' : ''}`} // Cambia el fondo si no es editable
+              disabled={!isEditable} // Deshabilita el campo si no es editable
             />
             <input
               type="text"
@@ -251,7 +252,8 @@ const OrderDetailPage: React.FC = () => {
               value={editableShipping.address}
               onChange={handleChangeShipping}
               placeholder="Dirección"
-              className="mb-2 w-full border border-gray-300 rounded-md p-2"
+              className={`mb-2 w-full border border-gray-300 rounded-md p-2 ${!isEditable ? 'bg-gray-200' : ''}`} // Cambia el fondo si no es editable
+              disabled={!isEditable} // Deshabilita el campo si no es editable
             />
             <input
               type="text"
@@ -259,7 +261,8 @@ const OrderDetailPage: React.FC = () => {
               value={editableShipping.city}
               onChange={handleChangeShipping}
               placeholder="Ciudad"
-              className="mb-2 w-full border border-gray-300 rounded-md p-2"
+              className={`mb-2 w-full border border-gray-300 rounded-md p-2 ${!isEditable ? 'bg-gray-200' : ''}`} // Cambia el fondo si no es editable
+              disabled={!isEditable} // Deshabilita el campo si no es editable
             />
             <input
               type="text"
@@ -267,7 +270,8 @@ const OrderDetailPage: React.FC = () => {
               value={editableShipping.state}
               onChange={handleChangeShipping}
               placeholder="Estado/Provincia"
-              className="mb-2 w-full border border-gray-300 rounded-md p-2"
+              className={`mb-2 w-full border border-gray-300 rounded-md p-2 ${!isEditable ? 'bg-gray-200' : ''}`} // Cambia el fondo si no es editable
+              disabled={!isEditable} // Deshabilita el campo si no es editable
             />
             <input
               type="text"
@@ -275,7 +279,8 @@ const OrderDetailPage: React.FC = () => {
               value={editableShipping.zipCode}
               onChange={handleChangeShipping}
               placeholder="Código Postal"
-              className="w-full border border-gray-300 rounded-md p-2"
+              className={`w-full border border-gray-300 rounded-md p-2 ${!isEditable ? 'bg-gray-200' : ''}`} // Cambia el fondo si no es editable
+              disabled={!isEditable} // Deshabilita el campo si no es editable
             />
           </div>
         </div>
@@ -304,7 +309,7 @@ const OrderDetailPage: React.FC = () => {
           <div className="flex gap-4">
             <button
               onClick={handleSaveChanges}
-              disabled={saving}
+              disabled={saving || !isEditable} // Deshabilita el botón si no es editable
               className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Guardando...' : 'Guardar Cambios'}
