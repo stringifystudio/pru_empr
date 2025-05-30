@@ -5,17 +5,22 @@ import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import ProductCard from '../components/products/ProductCard';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext'; // Importar el contexto de autenticación
+import toast from 'react-hot-toast'; // Importar la librería de notificaciones
 
 const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart } = useCart(); // Obtener la función para agregar al carrito
+  const { user, isAuthenticated } = useAuth(); // Obtener el usuario del contexto de autenticación
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState('');
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]); // Para almacenar las reseñas
+  const [newReview, setNewReview] = useState({ rating: 5, comment: '' }); // Para el nuevo comentario
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -48,7 +53,6 @@ const ProductDetailPage: React.FC = () => {
         const formattedProduct: Product = {
           ...productData,
           images: imagesArray,
-          // aseguramos que thumbnail sea la primera imagen si está definida
           thumbnail: productData.thumbnail || imagesArray[0] || ''
         };
 
@@ -69,6 +73,15 @@ const ProductDetailPage: React.FC = () => {
           }
         }
 
+        // Fetch reviews for the product
+        const { data: reviewsData, error: reviewsError } = await supabase
+          .from('reviews')
+          .select('*')
+          .eq('product_id', id);
+
+        if (reviewsError) throw reviewsError;
+        setReviews(reviewsData || []);
+
       } catch (err) {
         console.error('Error fetching product:', err);
         setError('Failed to load product');
@@ -79,6 +92,11 @@ const ProductDetailPage: React.FC = () => {
 
     fetchProduct();
   }, [id]);
+
+  // Calcular el rating promedio
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    : 0; // Si no hay reseñas, el promedio es 0
 
   // Agregar al carrito con cantidad
   const handleAddToCart = () => {
@@ -100,6 +118,40 @@ const ProductDetailPage: React.FC = () => {
     navigate(-1);
   };
 
+  const handleReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setNewReview(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newReview.comment || !isAuthenticated) {
+      toast.error('Debes estar autenticado para enviar una reseña');
+      return; // Asegúrate de que el usuario esté autenticado
+    }
+
+    try {
+      const { error } = await supabase
+        .from('reviews')
+        .insert([{ 
+          product_id: id, 
+          user_name: user?.user_metadata.full_name || 'Usuario Anónimo', // Obtener el nombre del usuario
+          user_photo: user?.user_metadata.avatar_url || '', // Obtener la foto del usuario
+          rating: newReview.rating, 
+          comment: newReview.comment 
+        }]);
+
+      if (error) throw error;
+
+      // Actualizar la lista de reseñas
+      setReviews(prev => [...prev, { ...newReview, user_name: user?.user_metadata.full_name || 'Usuario Anónimo', user_photo: user?.user_metadata.avatar_url || '' }]);
+      setNewReview({ rating: 5, comment: '' }); // Resetear el formulario
+      toast.success('Reseña enviada con éxito');
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      toast.error('Error al enviar la reseña');
+    }
+  };
 
   function formatPrice(value) {
     return new Intl.NumberFormat('es-CO', {
@@ -107,7 +159,7 @@ const ProductDetailPage: React.FC = () => {
         currency: 'COP',
         minimumFractionDigits: 2
     }).format(value || 0);
-}
+  }
 
   if (loading) {
     return (
@@ -201,10 +253,10 @@ const ProductDetailPage: React.FC = () => {
                     <Star 
                       key={i} 
                       size={18} 
-                      className={i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'} 
+                      className={i < Math.floor(averageRating) ? 'text-yellow-400 fill-current' : 'text-gray-300'} 
                     />
                   ))}
-                  <span className="ml-2 text-gray-600 text-sm">{product.rating}</span>
+                  <span className="ml-2 text-gray-600 text-sm">{averageRating.toFixed(1)}</span>
                 </div>
                 <span className="mx-2 text-gray-300">|</span>
                 <span className={`text-sm font-medium ${
@@ -292,6 +344,57 @@ const ProductDetailPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Reseñas */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-10">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Reseñas</h2>
+          <form onSubmit={handleSubmitReview} className="mb-6">
+            <div className="flex items-center mb-4">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  size={24}
+                  className={newReview.rating >= star ? 'text-yellow-400 fill-current cursor-pointer' : 'text-gray-300 cursor-pointer'}
+                  onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
+                />
+              ))}
+            </div>
+            <textarea
+              name="comment"
+              value={newReview.comment}
+              onChange={handleReviewChange}
+              placeholder="Escribe tu reseña aquí..."
+              className="w-full border border-gray-300 rounded-md p-2 mb-4"
+              rows={4}
+              required
+            />
+            <button
+              type="submit"
+              className="bg-blue-600 text-white font-medium py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Enviar Reseña
+            </button>
+          </form>
+
+          {reviews.length > 0 ? (
+            reviews.map((review) => (
+              <div key={review.id} className="border-b border-gray-200 py-4">
+                <div className="flex items-center mb-2">
+                  <img src={review.user_photo || '/default-avatar.png'} alt={review.user_name} className="w-8 h-8 rounded-full mr-2" />
+                  <span className="font-semibold">{review.user_name}</span>
+                  <div className="flex ml-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={16} className={i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'} />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-gray-600">{review.comment}</p>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-600">No hay reseñas para este producto.</p>
+          )}
+        </div>
+
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div>
@@ -309,4 +412,3 @@ const ProductDetailPage: React.FC = () => {
 };
 
 export default ProductDetailPage;
-
