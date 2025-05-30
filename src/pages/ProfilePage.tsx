@@ -32,6 +32,7 @@ const ProfilePage: React.FC = () => {
     { id: 'profile', label: 'Perfil', icon: User },
     { id: 'orders', label: 'Órdenes', icon: ShoppingBag },
     ...(isAdmin ? [
+      { id: 'admin-orders', label: 'Pedidos', icon: ShoppingBag },
       { id: 'create-product', label: 'Crear producto', icon: PlusCircle },
       { id: 'edit-product', label: 'Editar productos', icon: Edit }
     ] : []),
@@ -58,7 +59,7 @@ const ProfilePage: React.FC = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <User className="w-full h-full p-4 text-gray-400" />
+                      <User  className="w-full h-full p-4 text-gray-400" />
                     )}
                   </div>
                   <h2 className="text-xl font-semibold">{fullName}</h2>
@@ -153,6 +154,18 @@ const ProfilePage: React.FC = () => {
                     <h3 className="text-xl font-semibold mb-6">Tus pedidos</h3>
                     <Link
                       to="/orders"
+                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                      Ver todos los pedidos
+                    </Link>
+                  </div>
+                )}
+
+                {activeTab === 'admin-orders' && isAdmin && (
+                  <div>
+                    <h3 className="text-xl font-semibold mb-6">Gestión de Pedidos</h3>
+                    <Link
+                      to="/admin/orders"
                       className="text-blue-600 hover:text-blue-800 transition-colors"
                     >
                       Ver todos los pedidos
