@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
 import { Product } from '../../types';
 import { useCart } from '../../context/CartContext';
+import toast from 'react-hot-toast'; // Importa toast
 
 interface ProductCardProps {
   product: Product;
@@ -20,7 +21,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product);
+    toast.success('Producto agregado al carrito'); // Muestra la notificación
   };
+  
+  function formatPrice(price) {
+    return new Intl.NumberFormat("es-CO", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(price).replace(/\u00A0/g, "");
+  }
   
   return (
     <div 
@@ -76,16 +85,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <div>
               {discountedPrice ? (
                 <div className="flex items-center">
-                  <span className="text-lg font-bold text-gray-900">${discountedPrice.toFixed(2)}</span>
-                  <span className="ml-2 text-sm text-gray-500 line-through">${product.price.toFixed(2)}</span>
+                  <span className="text-lg font-bold text-gray-900">${formatPrice(discountedPrice)}</span>
+                  <span className="ml-2 text-sm text-gray-500 line-through">${formatPrice(product.price)}</span>
                 </div>
               ) : (
-                <span className="text-lg font-bold text-gray-900">${product.price.toFixed(2)}</span>
+                <span className="text-lg font-bold text-gray-900">${formatPrice(product.price)}</span>
               )}
             </div>
             
             <span className="text-xs text-gray-500">
-              {product.stock > 10 ? 'In Stock' : `Only ${product.stock} left`}
+              {product.stock > 10 ? 'Disponible' : `Solo quedan ${product.stock}`}
             </span>
           </div>
         </div>
