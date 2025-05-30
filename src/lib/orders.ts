@@ -14,7 +14,7 @@ interface ShippingAddress {
 export interface Order {
   id: string;
   userId: string;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'; // Corregido el tipo de status
   total: number;
   shippingAddress: ShippingAddress;
   createdAt: string;
@@ -34,10 +34,10 @@ export interface OrderItem {
 }
 
 export async function createOrder(items: CartItem[], shippingAddress: ShippingAddress, total: number) {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const { data: { user }, error: userError } = await supabase.auth.getUser ();
   
   if (userError || !user) {
-    throw new Error('User not authenticated');
+    throw new Error('User  not authenticated');
   }
 
   // Start a transaction
@@ -119,4 +119,48 @@ export async function getOrder(id: string): Promise<Order> {
   }
 
   return order;
+}
+
+// Nueva función para actualizar el estado de un pedido
+export async function updateOrderStatus(orderId: string, newStatus: string) {
+  const { data, error } = await supabase
+    .from('orders')
+    .update({ status: newStatus })
+    .eq('id', orderId);
+
+  if (error) {
+    throw new Error(`Error updating order status: ${error.message}`);
+  }
+
+  return data;
+}
+
+export async function createOrderComment(orderId: string, comment: string, adminUserId: string) {
+  const { data, error } = await supabase
+    .from('order_comments')
+    .insert([
+      {
+        order_id: orderId,
+        comment,
+        admin_user_id: adminUserId,
+      },
+    ]);
+
+  if (error) throw error;
+  return data;
+}
+
+export async function getOrderComments(orderId: string) {
+  const { data, error } = await supabase
+    .from('order_comments')
+    .select('*')
+    .eq('order_id', orderId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching comments:', error);
+    throw error;
+  }
+
+  return data;
 }
