@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ShoppingCart, ArrowRight, Mail, AlertCircle } from 'lucide-react';
+
+declare global {
+  interface Window {
+    grecaptcha: any;
+  }
+}
+
+const RECAPTCHA_SITE_KEY = '6LeKsVQrAAAAAP-Ia2UKiz79auBIm8h7NxOMtllK';
 
 const LoginPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,18 +19,50 @@ const LoginPage: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const [isRecaptchaVerified, setIsRecaptchaVerified] = useState(false);
+
   const { login, signup, resetPassword, signInWithGoogle } = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const from = location.state?.from || '/';
+
+  useEffect(() => {
+    // Reset recaptcha when form or mode changes
+    setRecaptchaToken(null);
+    setIsRecaptchaVerified(false);
+  }, [isLogin, isResetPassword]);
+
+  const handleRecaptchaVerify = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (!window.grecaptcha) {
+      setError('reCAPTCHA no está listo. Por favor, recarga la página.');
+      return;
+    }
+    try {
+      await window.grecaptcha.enterprise.ready();
+      const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: isLogin ? 'login' : 'signup' });
+      setRecaptchaToken(token);
+      setIsRecaptchaVerified(true);
+    } catch (error) {
+      setError('Error al verificar reCAPTCHA. Intenta de nuevo.');
+      setIsRecaptchaVerified(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    if (!isRecaptchaVerified || !recaptchaToken) {
+      setError('Por favor, verifica que eres humano haciendo clic en "Verifica que soy humano".');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       if (isResetPassword) {
@@ -39,6 +79,9 @@ const LoginPage: React.FC = () => {
       setError(error?.message || 'Credenciales de inicio de sesión no válidas. Por favor, revise su correo electrónico y contraseña.');
     } finally {
       setIsLoading(false);
+      // After submit reset the token and verification so user must verify again if submit again
+      setRecaptchaToken(null);
+      setIsRecaptchaVerified(false);
     }
   };
 
@@ -50,10 +93,10 @@ const LoginPage: React.FC = () => {
           <span>MercadoApp</span>
         </Link>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {isResetPassword 
+          {isResetPassword
             ? 'Restablece tu contraseña'
-            : isLogin 
-              ? 'Inicia sesión en tu cuenta' 
+            : isLogin
+              ? 'Inicia sesión en tu cuenta'
               : 'Crea una nueva cuenta'}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
@@ -148,39 +191,28 @@ const LoginPage: React.FC = () => {
               </div>
             )}
 
-            {isLogin && !isResetPassword && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember_me"
-                    name="remember_me"
-                    type="checkbox"
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="remember_me" className="ml-2 block text-sm text-gray-900">
-                    Acuérdate de mí
-                  </label>
-                </div>
-
-                <div className="text-sm">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsResetPassword(true);
-                      setError(null);
-                    }}
-                    className="font-medium text-blue-600 hover:text-blue-500"
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </button>
-                </div>
+            {/* Visible button for "Verify that I am human" */}
+            {!isResetPassword && (
+              <div className="flex items-center mt-4">
+                <button
+                  type="button"
+                  onClick={handleRecaptchaVerify}
+                  disabled={isRecaptchaVerified}
+                  className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${
+                    isRecaptchaVerified
+                      ? 'bg-green-600 text-white cursor-default'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                  }`}
+                >
+                  {isRecaptchaVerified ? 'Verificado ✔️' : 'Verifica que soy humano'}
+                </button>
               </div>
             )}
 
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !isRecaptchaVerified}
                 className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 {isLoading ? (
@@ -243,3 +275,4 @@ const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
+
