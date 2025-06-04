@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ShoppingCart, ArrowRight, Mail, AlertCircle } from 'lucide-react';
+import { RECAPTCHA_SITE_KEY } from '../lib/recaptcha';
 
 declare global {
   interface Window {
     grecaptcha: any;
   }
 }
-
-const RECAPTCHA_SITE_KEY = '6LeKsVQrAAAAAP-Ia2UKiz79auBIm8h7NxOMtllK';
 
 const LoginPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -21,13 +20,23 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [isRecaptchaVerified, setIsRecaptchaVerified] = useState(false);
-
+  
   const { login, signup, resetPassword, signInWithGoogle } = useAuth();
-
   const navigate = useNavigate();
   const location = useLocation();
-
   const from = location.state?.from || '/';
+
+  useEffect(() => {
+    // Load reCAPTCHA script
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/enterprise.js?render=${RECAPTCHA_SITE_KEY}`;
+    script.async = true;
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
 
   useEffect(() => {
     // Reset recaptcha when form or mode changes
@@ -35,20 +44,21 @@ const LoginPage: React.FC = () => {
     setIsRecaptchaVerified(false);
   }, [isLogin, isResetPassword]);
 
-  const handleRecaptchaVerify = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    setError(null);
+  const handleRecaptchaVerify = async () => {
     if (!window.grecaptcha) {
       setError('reCAPTCHA no está listo. Por favor, recarga la página.');
       return;
     }
+
     try {
-      await window.grecaptcha.enterprise.ready();
-      const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: isLogin ? 'login' : 'signup' });
+      const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, {
+        action: isLogin ? 'login' : 'signup'
+      });
       setRecaptchaToken(token);
       setIsRecaptchaVerified(true);
     } catch (error) {
-      setError('Error al verificar reCAPTCHA. Intenta de nuevo.');
+      console.error('reCAPTCHA error:', error);
+      setError('Error al verificar reCAPTCHA. Por favor, intenta de nuevo.');
       setIsRecaptchaVerified(false);
     }
   };
@@ -59,7 +69,7 @@ const LoginPage: React.FC = () => {
     setError(null);
 
     if (!isRecaptchaVerified || !recaptchaToken) {
-      setError('Por favor, verifica que eres humano haciendo clic en "Verifica que soy humano".');
+      setError('Por favor, verifica que eres humano.');
       setIsLoading(false);
       return;
     }
@@ -76,10 +86,9 @@ const LoginPage: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Authentication error:', error);
-      setError(error?.message || 'Credenciales de inicio de sesión no válidas. Por favor, revise su correo electrónico y contraseña.');
+      setError(error?.message || 'Error de autenticación. Por favor, verifica tus credenciales.');
     } finally {
       setIsLoading(false);
-      // After submit reset the token and verification so user must verify again if submit again
       setRecaptchaToken(null);
       setIsRecaptchaVerified(false);
     }
@@ -93,10 +102,10 @@ const LoginPage: React.FC = () => {
           <span>MercadoApp</span>
         </Link>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {isResetPassword
+          {isResetPassword 
             ? 'Restablece tu contraseña'
-            : isLogin
-              ? 'Inicia sesión en tu cuenta'
+            : isLogin 
+              ? 'Inicia sesión en tu cuenta' 
               : 'Crea una nueva cuenta'}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
@@ -136,7 +145,7 @@ const LoginPage: React.FC = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLogin && !isResetPassword && (
               <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="fullName\" className="block text-sm font-medium text-gray-700">
                   Nombre completo
                 </label>
                 <div className="mt-1">
@@ -191,37 +200,47 @@ const LoginPage: React.FC = () => {
               </div>
             )}
 
-            {/* Visible button for "Verify that I am human" */}
-            {!isResetPassword && (
-              <div className="flex items-center mt-4">
+            {isLogin && !isResetPassword && (
+              <div className="text-sm text-right">
                 <button
                   type="button"
-                  onClick={handleRecaptchaVerify}
-                  disabled={isRecaptchaVerified}
-                  className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium ${
-                    isRecaptchaVerified
-                      ? 'bg-green-600 text-white cursor-default'
-                      : 'bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-                  }`}
+                  onClick={() => {
+                    setIsResetPassword(true);
+                    setError(null);
+                  }}
+                  className="font-medium text-blue-600 hover:text-blue-500"
                 >
-                  {isRecaptchaVerified ? 'Verificado ✔️' : 'Verifica que soy humano'}
+                  ¿Olvidaste tu contraseña?
                 </button>
               </div>
             )}
 
-            <div>
+            <div className="flex flex-col gap-4">
+              <button
+                type="button"
+                onClick={handleRecaptchaVerify}
+                className={`w-full flex justify-center items-center px-4 py-2 border rounded-md text-sm font-medium ${
+                  isRecaptchaVerified
+                    ? 'border-green-500 bg-green-50 text-green-700'
+                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+                disabled={isRecaptchaVerified}
+              >
+                {isRecaptchaVerified ? '✓ Verificado' : 'Verificar que soy humano'}
+              </button>
+
               <button
                 type="submit"
                 disabled={isLoading || !isRecaptchaVerified}
-                className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 {isLoading ? (
                   <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white\" xmlns="http://www.w3.org/2000/svg\" fill="none\" viewBox="0 0 24 24">
+                      <circle className="opacity-25\" cx="12\" cy="12\" r="10\" stroke="currentColor\" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Tratamiento...
+                    Procesando...
                   </span>
                 ) : (
                   <span className="flex items-center">
@@ -232,7 +251,7 @@ const LoginPage: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        {isLogin ? 'Iniciar sesión' : 'Crear una cuenta'}
+                        {isLogin ? 'Iniciar sesión' : 'Crear cuenta'}
                         <ArrowRight size={16} className="ml-1" />
                       </>
                     )}
@@ -240,7 +259,7 @@ const LoginPage: React.FC = () => {
                 )}
               </button>
             </div>
-            
+
             <div>
               <button
                 type="button"
@@ -257,14 +276,14 @@ const LoginPage: React.FC = () => {
                     setIsLoading(false);
                   }
                 }}
-                className="w-full mb-4 flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <img
                   src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
                   alt="Google"
                   className="w-5 h-5 mr-2"
                 />
-               Iniciar sesión con Google
+                Iniciar sesión con Google
               </button>
             </div>
           </form>
@@ -275,4 +294,3 @@ const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
-
