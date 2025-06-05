@@ -15,7 +15,7 @@ declare global {
   }
 }
 
-const RECAPTCHA_SITE_KEY = '6LeKsVQrAAAAAP-Ia2UKiz79auBIm8h7NxOMtllK';
+const RECAPTCHA_SITE_KEY = '6Lcm4VYrAAAAAGq90HUbHL7tYClE1pJeqxYiAUGq';
 
 const LoginPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -34,15 +34,31 @@ const LoginPage: React.FC = () => {
   const from = location.state?.from || '/';
 
   useEffect(() => {
-    window.grecaptcha.enterprise.ready(() => {
-      window.grecaptcha.enterprise.render('recaptcha-container', {
-        'sitekey': RECAPTCHA_SITE_KEY,
-        'callback': (token: string) => {
-          setRecaptchaToken(token);
-          setIsRecaptchaVerified(true);
-        }
-      });
-    });
+    const loadRecaptcha = () => {
+      if (window.grecaptcha && window.grecaptcha.enterprise) {
+        window.grecaptcha.enterprise.ready(() => {
+          window.grecaptcha.enterprise.render('recaptcha-container', {
+            'sitekey': RECAPTCHA_SITE_KEY,
+            'callback': (token: string) => {
+              setRecaptchaToken(token);
+              setIsRecaptchaVerified(true);
+            }
+          });
+        });
+      } else {
+        console.error('reCAPTCHA is not loaded');
+      }
+    };
+
+    // Verifica si el script de reCAPTCHA ya está cargado
+    if (document.readyState === 'complete') {
+      loadRecaptcha();
+    } else {
+      window.addEventListener('load', loadRecaptcha);
+      return () => {
+        window.removeEventListener('load', loadRecaptcha);
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -132,7 +148,7 @@ const LoginPage: React.FC = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLogin && !isResetPassword && (
               <div>
-                <label htmlFor="fullName\" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
                   Nombre completo
                 </label>
                 <div className="mt-1">
@@ -212,8 +228,8 @@ const LoginPage: React.FC = () => {
               >
                 {isLoading ? (
                   <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white\" xmlns="http://www.w3.org/2000/svg\" fill="none\" viewBox="0 0 24 24">
-                      <circle className="opacity-25\" cx="12\" cy="12\" r="10\" stroke="currentColor\" strokeWidth="4"></circle>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     Procesando...
