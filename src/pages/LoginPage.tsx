@@ -2,13 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ShoppingCart, ArrowRight, Mail, AlertCircle } from 'lucide-react';
-import { RECAPTCHA_SITE_KEY } from '../lib/recaptcha';
 
 declare global {
   interface Window {
-    grecaptcha: any;
+    grecaptcha: {
+      enterprise: {
+        ready: (callback: () => void) => void;
+        execute: (siteKey: string, options: { action: string }) => Promise<string>;
+        render: (elementId: string, options: any) => void;
+      };
+    };
   }
 }
+
+const RECAPTCHA_SITE_KEY = '6LeKsVQrAAAAAP-Ia2UKiz79auBIm8h7NxOMtllK';
 
 const LoginPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -27,41 +34,21 @@ const LoginPage: React.FC = () => {
   const from = location.state?.from || '/';
 
   useEffect(() => {
-    // Load reCAPTCHA script
-    const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/enterprise.js?render=${RECAPTCHA_SITE_KEY}`;
-    script.async = true;
-    document.head.appendChild(script);
-
-    return () => {
-      document.head.removeChild(script);
-    };
+    window.grecaptcha.enterprise.ready(() => {
+      window.grecaptcha.enterprise.render('recaptcha-container', {
+        'sitekey': RECAPTCHA_SITE_KEY,
+        'callback': (token: string) => {
+          setRecaptchaToken(token);
+          setIsRecaptchaVerified(true);
+        }
+      });
+    });
   }, []);
 
   useEffect(() => {
-    // Reset recaptcha when form or mode changes
     setRecaptchaToken(null);
     setIsRecaptchaVerified(false);
   }, [isLogin, isResetPassword]);
-
-  const handleRecaptchaVerify = async () => {
-    if (!window.grecaptcha) {
-      setError('reCAPTCHA no está listo. Por favor, recarga la página.');
-      return;
-    }
-
-    try {
-      const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, {
-        action: isLogin ? 'login' : 'signup'
-      });
-      setRecaptchaToken(token);
-      setIsRecaptchaVerified(true);
-    } catch (error) {
-      console.error('reCAPTCHA error:', error);
-      setError('Error al verificar reCAPTCHA. Por favor, intenta de nuevo.');
-      setIsRecaptchaVerified(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -216,18 +203,7 @@ const LoginPage: React.FC = () => {
             )}
 
             <div className="flex flex-col gap-4">
-              <button
-                type="button"
-                onClick={handleRecaptchaVerify}
-                className={`w-full flex justify-center items-center px-4 py-2 border rounded-md text-sm font-medium ${
-                  isRecaptchaVerified
-                    ? 'border-green-500 bg-green-50 text-green-700'
-                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-                disabled={isRecaptchaVerified}
-              >
-                {isRecaptchaVerified ? '✓ Verificado' : 'Verificar que soy humano'}
-              </button>
+              <div id="recaptcha-container" className="flex justify-center"></div>
 
               <button
                 type="submit"
