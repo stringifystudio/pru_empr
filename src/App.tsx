@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-import { WishlistProvider } from './context/WishlistContext'; // <-- nuevo
+import { WishlistProvider } from './context/WishlistContext';
 
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
@@ -19,16 +19,17 @@ import ProfilePage from './pages/ProfilePage';
 import CreateProductPage from './pages/CreateProductPage';
 import EditProductPage from './pages/EditProductPage';
 import CategoryPage from './pages/CategoryPage';
-import WishlistPage from './pages/WishlistPage'; // <-- si existe
+import WishlistPage from './pages/WishlistPage';
 import AdminOrdersPage from './pages/AdminOrdersPage';
-import OrderDetailPage from './pages/OrderDetailPage'; // <-- nueva importación
+import OrderDetailPage from './pages/OrderDetailPage';
+import SearchPage from './pages/SearchPage';
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <WishlistProvider> {/* << Añadido */}
+          <WishlistProvider>
             <div className="flex flex-col min-h-screen">
               <Header />
               <main className="flex-grow">
@@ -38,15 +39,16 @@ function App() {
                   <Route path="/cart" element={<CartPage />} />
                   <Route path="/checkout" element={<CheckoutPage />} />
                   <Route path="/orders" element={<OrdersPage />} />
-                  <Route path="/order/:id" element={<OrderDetailPage />} /> {/* <- nueva ruta para detalles del pedido */}
+                  <Route path="/order/:id" element={<OrderDetailPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/update-password" element={<UpdatePasswordPage />} />
                   <Route path="/category/:categoryId" element={<CategoryPage />} />
-                  <Route path="/wishlist" element={<WishlistPage />} /> {/* <- si lo usas */}
+                  <Route path="/wishlist" element={<WishlistPage />} />
+                  <Route path="/search" element={<SearchPage />} />
                   <Route path="/admin/create-product" element={<CreateProductPage />} />
                   <Route path="/admin/edit-product" element={<EditProductPage />} />
-                  <Route path="/admin/orders" element={<AdminOrdersPage />} /> {/* <- nueva ruta */}
+                  <Route path="/admin/orders" element={<AdminOrdersPage />} />
                 </Routes>
               </main>
               <Footer />
