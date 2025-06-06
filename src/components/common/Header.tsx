@@ -47,7 +47,7 @@ const Header: React.FC = () => {
           >
             <input
               type="text"
-              placeholder="Search for products..."
+              placeholder="Buscar productos..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full py-2 px-4 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -137,7 +137,7 @@ const Header: React.FC = () => {
         >
           <input
             type="text"
-            placeholder="Search for products..."
+            placeholder="Buscar productos...."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full py-2 px-4 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
