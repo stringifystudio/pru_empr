@@ -15,8 +15,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [isHovered, setIsHovered] = React.useState(false);
   
-  const discountedPrice = product.discountPercentage
-    ? product.price * (1 - product.discountPercentage / 100)
+  // Calcular el precio con descuento
+  const discountedPrice = product.discount_percentage
+    ? product.price * (1 - product.discount_percentage / 100)
     : null;
 
   const isProductInWishlist = isInWishlist(product.id);
@@ -39,6 +40,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     }
   };
   
+  // Formatear el precio
   function formatPrice(price: number) {
     return new Intl.NumberFormat("es-CO", {
       minimumFractionDigits: 2,
@@ -48,20 +50,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   
   return (
     <div 
-      className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1"
+      className="bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:shadow-xl transform hover:-translate-y-1"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <Link to={`/product/${product.id}`} className="block">
-        <div className="relative h-48 overflow-hidden">
+        <div className="relative h-64 overflow-hidden">
           <img 
             src={product.thumbnail} 
             alt={product.title} 
             className={`w-full h-full object-cover transition-transform duration-500 ${isHovered ? 'scale-110' : 'scale-100'}`}
           />
-          {product.discountPercentage && (
+          {product.discount_percentage && product.discount_percentage > 0 && (
             <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-              {Math.round(product.discountPercentage)}% OFF
+              {Math.round(product.discount_percentage)}% OFF
             </div>
           )}
           <button
@@ -89,7 +91,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </div>
         
         <div className="p-4">
-          <h3 className="text-gray-700 font-medium text-lg mb-1 truncate">{product.title}</h3>
+          <h3 className="text-gray-800 font-semibold text-lg mb-1 truncate">{product.title}</h3>
           
           <div className="flex items-center mb-2">
             <div className="flex items-center text-yellow-500">
@@ -104,15 +106,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <div>
               {discountedPrice ? (
                 <div className="flex items-center">
-                  <span className="text-lg font-bold text-gray-900">${formatPrice(discountedPrice)}</span>
+                  <span className="text-xl font-bold text-gray-900">${formatPrice(discountedPrice)}</span>
                   <span className="ml-2 text-sm text-gray-500 line-through">${formatPrice(product.price)}</span>
                 </div>
               ) : (
-                <span className="text-lg font-bold text-gray-900">${formatPrice(product.price)}</span>
+                <span className="text-xl font-bold text-gray-900">${formatPrice(product.price)}</span>
               )}
             </div>
             
-            <span className="text-xs text-gray-500">
+            <span className={`text-xs font-medium ${product.stock > 10 ? 'text-green-600' : 'text-red-600'}`}>
               {product.stock > 10 ? 'Disponible' : `Solo quedan ${product.stock}`}
             </span>
           </div>
