@@ -21,6 +21,7 @@ const ProductDetailPage: React.FC = () => {
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
+  const [averageRating, setAverageRating] = useState(0); // Estado para la calificación promedio
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -77,6 +78,12 @@ const ProductDetailPage: React.FC = () => {
 
         if (reviewsError) throw reviewsError;
         setReviews(reviewsData || []);
+        
+        // Calcular la calificación promedio después de cargar las reseñas
+        const calculatedAverageRating = reviewsData.length > 0
+          ? reviewsData.reduce((sum, r) => sum + r.rating, 0) / reviewsData.length
+          : 0;
+        setAverageRating(calculatedAverageRating); // Actualiza el estado de averageRating
 
       } catch (err) {
         console.error('Error fetching product:', err);
@@ -88,10 +95,6 @@ const ProductDetailPage: React.FC = () => {
 
     fetchProduct();
   }, [id]);
-
-  const averageRating = reviews.length > 0
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-    : 0;
 
   const handleAddToCart = () => {
     if (product && quantity > 0 && product.stock >= quantity) {
@@ -140,6 +143,7 @@ const ProductDetailPage: React.FC = () => {
 
       if (error) throw error;
 
+      // Actualizar reseñas en el estado local
       setReviews(prev => [...prev, {
         rating: newReview.rating,
         comment: newReview.comment,
@@ -147,6 +151,19 @@ const ProductDetailPage: React.FC = () => {
         user_photo: user?.user_metadata.avatar_url || '',
         id: Math.random().toString(36).substr(2, 9) // Unique key to avoid React warnings
       }]);
+
+      // Calcular nueva calificación promedio
+      const newAverageRating = (averageRating * reviews.length + newReview.rating) / (reviews.length + 1);
+
+      // Actualizar el rating en la base de datos
+      const { error: updateError } = await supabase
+        .from('products')
+        .update({ rating: newAverageRating })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      setAverageRating(newAverageRating); // Actualiza el estado de averageRating
       setNewReview({ rating: 5, comment: '' });
       toast.success('Reseña enviada con éxito');
     } catch (error) {
@@ -170,7 +187,24 @@ const ProductDetailPage: React.FC = () => {
 
       if (error) throw error;
 
-      setReviews(prev => prev.filter(review => review.id !== reviewId));
+      // Elimina del estado local
+      const updatedReviews = reviews.filter(review => review.id !== reviewId);
+      setReviews(updatedReviews);
+
+      // Recalcula rating promedio
+      const newAverageRating = updatedReviews.length > 0
+        ? updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length
+        : 0;
+
+      // Actualiza el rating en la tabla products
+      const { error: updateError } = await supabase
+        .from('products')
+        .update({ rating: newAverageRating })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      setAverageRating(newAverageRating); // Actualiza el estado de averageRating
       toast.success('Reseña eliminada con éxito');
     } catch (error) {
       console.error('Error deleting review:', error);
@@ -425,7 +459,7 @@ const ProductDetailPage: React.FC = () => {
         {relatedProducts.length > 0 && (
           <div>
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Productos relacionados</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols- 4 gap-6">
               {relatedProducts.map((related) => (
                 <ProductCard key={related.id} product={related} />
               ))}
