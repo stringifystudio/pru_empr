@@ -155,6 +155,29 @@ const ProductDetailPage: React.FC = () => {
     }
   };
 
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!isAuthenticated) {
+      toast.error('Debes estar autenticado para eliminar una reseña');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('reviews')
+        .delete()
+        .eq('id', reviewId)
+        .eq('user_photo', user?.user_metadata.avatar_url); // Asegúrate de que el usuario que intenta eliminar es el autor
+
+      if (error) throw error;
+
+      setReviews(prev => prev.filter(review => review.id !== reviewId));
+      toast.success('Reseña eliminada con éxito');
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      toast.error('Error al eliminar la reseña');
+    }
+  };
+
   function formatPrice(value: number) {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -191,8 +214,8 @@ const ProductDetailPage: React.FC = () => {
     );
   }
 
-  const discountedPrice = product.discountPercentage
-    ? product.price * (1 - product.discountPercentage / 100)
+  const discountedPrice = product.discount_percentage
+    ? product.price * (1 - product.discount_percentage / 100)
     : null;
 
   return (
@@ -211,7 +234,7 @@ const ProductDetailPage: React.FC = () => {
           <span className="text-gray-700 font-medium truncate">{product.title}</span>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-10">
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-10">
           <div className="grid grid-cols-1 md:grid-cols-2">
             <div className="p-6 border-r border-gray-200">
               <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
@@ -260,7 +283,7 @@ const ProductDetailPage: React.FC = () => {
                 <span className={`text-sm font-medium ${
                   product.stock > 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {product.stock > 0 ? `In Stock (${product.stock} available)` : 'Out of Stock'}
+                  {product.stock > 0 ? `En Stock (${product.stock} disponibles)` : 'Agotado'}
                 </span>
               </div>
 
@@ -270,7 +293,7 @@ const ProductDetailPage: React.FC = () => {
                     <span className="text-3xl font-bold text-gray-900">{formatPrice(discountedPrice)}</span>
                     <span className="ml-2 text-lg text-gray-500 line-through">{formatPrice(product.price)}</span>
                     <span className="ml-2 bg-red-100 text-red-700 text-sm px-2 py-1 rounded">
-                      Save {Math.round(product.discountPercentage)}%
+                      Ahorra {Math.round(product.discount_percentage)}%
                     </span>
                   </div>
                 ) : (
@@ -309,7 +332,7 @@ const ProductDetailPage: React.FC = () => {
                     disabled={product.stock <= 0}
                   >
                     <ShoppingCart className="mr-2" size={20} />
-                    añadir al carrito
+                    Añadir al carrito
                   </button>
                   <button
                     className="p-3 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
@@ -384,6 +407,14 @@ const ProductDetailPage: React.FC = () => {
                   </div>
                 </div>
                 <p className="text-gray-600">{review.comment}</p>
+                {isAuthenticated && review.user_photo === user?.user_metadata.avatar_url && ( // Verifica si el usuario es el autor
+                  <button
+                    onClick={() => handleDeleteReview(review.id)}
+                    className="text-red-600 hover:text-red-800 mt-2"
+                  >
+                    Eliminar Reseña
+                  </button>
+                )}
               </div>
             ))
           ) : (
@@ -407,4 +438,3 @@ const ProductDetailPage: React.FC = () => {
 };
 
 export default ProductDetailPage;
-
