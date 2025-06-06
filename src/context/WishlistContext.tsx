@@ -5,7 +5,6 @@ import {
   getWishlistItems, 
   addToWishlist as addToWishlistDB, 
   removeFromWishlist as removeFromWishlistDB,
-  isInWishlist as isInWishlistDB,
   syncWishlistToDatabase,
   WishlistItem
 } from '../lib/wishlist';
@@ -78,7 +77,7 @@ export const WishlistProvider: React.FC<{ children: ReactNode }> = ({ children }
     const localWishlist = loadLocalWishlist();
     if (localWishlist.length > 0) {
       try {
-        await syncWishlistToDatabase(localWishlist);
+        await syncWishlistToDatabase(user.id, localWishlist); // Asegúrate de pasar el user.id
         // Clear localStorage after successful sync
         localStorage.removeItem(WISHLIST_STORAGE_KEY);
         // Reload from database to get the synced data
@@ -107,7 +106,7 @@ export const WishlistProvider: React.FC<{ children: ReactNode }> = ({ children }
     try {
       if (isAuthenticated) {
         // Add to database
-        await addToWishlistDB(product.id);
+        await addToWishlistDB(user.id, product.id); // Asegúrate de pasar el user.id
         setWishlist(prev => [...prev, product]);
         setWishlistIds(prev => new Set([...prev, product.id]));
         toast.success('Producto agregado a la lista de deseos');
@@ -131,7 +130,7 @@ export const WishlistProvider: React.FC<{ children: ReactNode }> = ({ children }
     try {
       if (isAuthenticated) {
         // Remove from database
-        await removeFromWishlistDB(productId);
+        await removeFromWishlistDB(user.id, productId); // Asegúrate de pasar el user.id
         setWishlist(prev => prev.filter(p => p.id !== productId));
         setWishlistIds(prev => {
           const newSet = new Set(prev);
