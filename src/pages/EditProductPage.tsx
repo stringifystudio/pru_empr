@@ -241,7 +241,7 @@ const EditProductPage: React.FC = () => {
     );
   }
 
-  function formatPrice(value) {
+  function formatPrice(value: number) {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
@@ -261,6 +261,10 @@ const EditProductPage: React.FC = () => {
           const title = productForm.title ?? product.title;
           const price = productForm.price ?? product.price;
           const stock = productForm.stock ?? product.stock;
+          const category = productForm.category ?? product.category;
+          const description = productForm.description ?? product.description;
+          const brand = productForm.brand ?? product.brand;
+          const discountPercentage = productForm.discount_percentage ?? product.discount_percentage;
 
           return (
             <div
@@ -301,7 +305,7 @@ const EditProductPage: React.FC = () => {
 
               {editingProduct === product.id && (
                 <div className="mt-6 border-t pt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Nombre
@@ -340,6 +344,62 @@ const EditProductPage: React.FC = () => {
                         }
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Categoría
+                      </label>
+                      <select
+                        value={category || ''}
+                        onChange={e => handleFieldChange(product.id, 'category', e.target.value)}
+                        className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      >
+                        <option value="">Selecciona una categoría</option>
+                        <option value="f78c5ed5-d064-49cb-850f-8bd8bc4f08dc">Ropa</option>
+                        <option value="610486ca-f06e-443e-a291-33da896dce41">Joyería</option>
+                        <option value="b112bffd-e2a2-45ee-bb7a-8761571cd050">Relojes</option>
+                        <option value="781fbf1c-4d0d-4d2f-a667-cd1456498517">Bolsos</option>
+                        <option value="a984e494-e064-4385-b5aa-d8ccc3b4cf92">Ofertas</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Marca
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        value={brand || ''}
+                        onChange={e => handleFieldChange(product.id, 'brand', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Descuento (%)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        value={discountPercentage || ''}
+                        onChange={e =>
+                          handleFieldChange(product.id, 'discount_percentage', parseFloat(e.target.value))
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Descripción
+                    </label>
+                    <textarea
+                      rows={3}
+                      className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      value={description || ''}
+                      onChange={e => handleFieldChange(product.id, 'description', e.target.value)}
+                    />
                   </div>
 
                   {/* Image uploader */}
