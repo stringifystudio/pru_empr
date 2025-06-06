@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
 import { Product } from '../../types';
 import { useCart } from '../../context/CartContext';
-import toast from 'react-hot-toast'; // Importa toast
+import { useWishlist } from '../../context/WishlistContext';
+import toast from 'react-hot-toast';
 
 interface ProductCardProps {
   product: Product;
@@ -11,20 +12,34 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [isHovered, setIsHovered] = React.useState(false);
   
   const discountedPrice = product.discountPercentage
     ? product.price * (1 - product.discountPercentage / 100)
     : null;
 
+  const isProductInWishlist = isInWishlist(product.id);
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product);
-    toast.success('Producto agregado al carrito'); // Muestra la notificación
+    toast.success('Producto agregado al carrito');
+  };
+
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isProductInWishlist) {
+      await removeFromWishlist(product.id);
+    } else {
+      await addToWishlist(product);
+    }
   };
   
-  function formatPrice(price) {
+  function formatPrice(price: number) {
     return new Intl.NumberFormat("es-CO", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -50,7 +65,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </div>
           )}
           <button
-            onClick={(e) => handleAddToCart(e)}
+            onClick={handleAddToCart}
             className={`absolute bottom-2 right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-all duration-300 ${
               isHovered ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-4'
             }`}
@@ -59,13 +74,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <ShoppingCart size={16} />
           </button>
           <button
-            className={`absolute bottom-2 left-2 bg-white text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-all duration-300 ${
+            onClick={handleWishlistToggle}
+            className={`absolute bottom-2 left-2 p-2 rounded-full transition-all duration-300 ${
+              isProductInWishlist 
+                ? 'bg-red-500 text-white hover:bg-red-600' 
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            } ${
               isHovered ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-4'
             }`}
-            aria-label="Add to wishlist"
-            onClick={(e) => e.preventDefault()}
+            aria-label={isProductInWishlist ? "Remove from wishlist" : "Add to wishlist"}
           >
-            <Heart size={16} />
+            <Heart size={16} className={isProductInWishlist ? 'fill-current' : ''} />
           </button>
         </div>
         
